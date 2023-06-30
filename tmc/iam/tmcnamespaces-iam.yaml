@@ -1,0 +1,21 @@
+#allows for flux service accounts in tenant ns to manage tmc ns
+fullName:
+  name: metatmc-controller-role
+spec:
+  resourceTypes:
+  - clusters
+  resources:
+  - CLUSTER
+  rules:
+  - apiGroups:
+    - tmc.tanzufield.vmware.com
+    resources:
+    - tmcnamespaces
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete

@@ -1,6 +1,6 @@
 # Flux TMC Multi-tenant
 
-This repo serves as a starting point for managing multi-tenant clusters using Flux and TMC.
+This repo serves as a starting point for managing multi-tenant clusters using Flux and TMC.In this case what we mean by multi-tenant is that different teams can share a K8s cluster and have access to self service namespaces in that cluster but not be able to touch other teams namespaces in the same cluster. This does not get into network policy for locking down namepsace networking, that is out of scope.  
 
 
 
@@ -21,6 +21,19 @@ This repo serves as a starting point for managing multi-tenant clusters using Fl
 * Has admin access to the namespaces they create 
 * Manages `GitRepositories`, `Kustomizations`, `HelmRepositories` and `HelmReleases` in their namespaces
 * has editor access into thier TMC workspace
+
+# How it works
+
+TMC has the concept of a workspace which can group multiple namespaces across clusters under a single space. Using this concept we can create a tenancy model around namespaces in a cluster. This workspace concept is core to the multitenancy in this repo. The way this tenancy model works is this:
+
+*  tenants get their own workspace and using TMC permissions we can ensure they are not able to access namespaces outside of their workspace as a logged in user
+*  A flux bootstrap namespace and service account is created for each tenant, this namespace is where the initial kustomization for flxu is deployed by the platform admin.
+*  The bootstrap namespace service account is given permissions in TMC to the workspace. *** This is a key piece in that TMC handles propogating the permissions on the service account to access the tenants other namespaces. without TMC doing this another tool is needed to handle this, it's not native to k8s. ***
+*  A TMC custom OPA policy is used to enforce that the tenants kustomizations and other flux reosurces use a service account. this prevents the flux controller from operating as cluster admin. This si cirtical in limiting the tenants access.
+*  Enforcing namespace creation through flux allows for the platform admins to overwrite the critical fields to make sure namespaces are created in the right workspace.
+  
+
+
 
 
 ## Repo structure
@@ -72,11 +85,20 @@ clusters:
 * iris-test
 
 
+### Create initial workspaces for each team
+
+Each team gets their own workspace in which all of their namespaces will be created
+
+
+```bash
+tanzu tmc workspace create -f tmc/workspaces/iris-green.yaml
+tanzu tmc workspace create -f tmc/workspaces/iris-blue.yaml
+tanzu tmc workspace create -f tmc/workspaces/iris-red.yaml
 
 
 ### Enable CD components on the cluster groups for TMC
 
-This
+This will enable the flux kustomize and helm controllers in all of the clusters that are added to the cluster groups.
 
 
 ```bash
@@ -89,3 +111,43 @@ tanzu tmc helm enable -g dev -s clustergroup
 tanzu tmc helm enable -g test -s clustergroup
 
 ```
+
+### Create the custom TMC policy to enforce service account usage
+
+We need to create an Gatekeeper constraint template that will allow us to enforce service account usage on the flux CRDs. Thsi prevents tenants from being able to use admin level creds with flux.
+
+```bash
+tanzu tmc policy policy-template create --object-file tmc/policy/enforce-sa-template.yaml
+```
+
+Apply that template to the two cluster groups that tenants clusters will be in. We will also exclude the namespaces that we don't want it enforce on. 
+
+```bash
+tanzu tmc policy create -f tmc/policy/enforce-sa-dev.yaml -s clustergroup
+tanzu tmc policy create -f tmc/policy/enforce-sa-test.yaml -s clustergroup
+```
+
+
+### Create the TMC IAM roles needed
+
+The first role needed is the role that will be equivalent to cluster admin and bound to the bootsrap namespace's service account called `tenant-flux-reconciler`. this is required becuase currently the built in TMC roles at the workspace level do not have enough permisisons for CRDs. 
+
+
+```bash
+tanzu tmc iam role create -f tmc/iam/cluster-admin-equiv-iam.yaml
+```
+
+
+The next role is the one that will allow the flux tenant service account in the infra-ops cluster the ability to create TMC  namespaces. this enable namespace self service.
+
+```bash
+tanzu tmc iam role create -f tmc/iam/tmcnamespaces-iam.yaml
+```
+
+
+### Bind the roles to the service account with TMC IAM policy
+
+This first role binding is going to bind the tenants service account to the cluster admin equivalent role in the tenants workspace. This will mean that anytime a new namespace is created the service accoutn flux is using will immediately have the correct permissions on the namespace. This is very useful, without this workspace level binding we would need to use some type of controller to handle this dynamically for us.
+
+
+

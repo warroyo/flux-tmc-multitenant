@@ -1,0 +1,37 @@
+fullName:
+  name: cluster-admin-equiv
+meta:
+  description: equivalent role of cluster admin but used for binding at the namespace level
+
+spec:
+  permissions:
+  - cluster.namespace.get
+  - cluster.namespace.iam.get
+  - cluster.namespace.iam.set
+  - cluster.namespace.policy.get
+  resourceTypes:
+  - workspaces
+  - namespaces
+  - workspaces
+  resources:
+  - WORKSPACE
+  - NAMESPACE
+  - WORKSPACE
+  rules:
+  - apiGroups:
+    - '*'
+    resources:
+    - '*'
+    verbs:
+    - '*'
+  - apiGroups:
+    - '*'
+    nonResourceUrls:
+    - /*
+    verbs:
+    - '*'
+  tanzuPermissions:
+  - cluster.namespace.get
+  - cluster.namespace.iam.get
+  - cluster.namespace.iam.set
+  - cluster.namespace.policy.get

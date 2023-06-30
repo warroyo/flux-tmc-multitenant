@@ -1,0 +1,21 @@
+
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: fluxenforcesa
+spec:
+  crd:
+    spec:
+      names:
+        kind: fluxenforcesa
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package fluxenforcesa
+
+        violation[{"msg": msg, "details": {}}] {
+            any([input.review.object.kind == "Kustomization", input.review.object.kind == "HelmRelease"])
+            k = input.review.object
+            not k.spec.serviceAccountName
+            msg := sprintf("serviceAccountName is required for %v", [k.metadata.name])
+        }

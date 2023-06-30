@@ -1,0 +1,23 @@
+fullName:
+  clusterGroupName: test
+  name: fluxenforcesa
+spec:
+  input:
+    enforcementAction: deny
+    parameters: {}
+    targetKubernetesResources:
+    - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+      - helm.toolkit.fluxcd.io/v2beta1
+      kinds:
+      - Kustomization
+      - HelmRelease
+  namespaceSelector:
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values:
+      - tanzu-continuousdelivery-resources
+  recipe: fluxenforcesa
+  recipeVersion: v1
+  type: custom-policy
