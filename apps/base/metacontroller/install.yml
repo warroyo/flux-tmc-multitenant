@@ -1,0 +1,29 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: metacontroller
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  interval: 5m
+  url: https://github.com/metacontroller/metacontroller
+  ref:
+    branch: master
+  ignore: |-
+    # exclude all
+    /*
+    # include charts directory
+    !/manifests/production
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: metacontroller
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  interval: 10m0s
+  path: manifests/production
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: metacontroller

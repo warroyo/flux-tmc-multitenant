@@ -1,0 +1,15 @@
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: contour
+  namespace: infra-packages
+spec:
+  serviceAccountName: pkg-gitops-pkgi-sa
+  packageRef:
+    refName: contour.tanzu.vmware.com
+    versionSelection:
+      constraints: 1.23.5+vmware.1-tkg.1
+  values:
+  - secretRef:
+      name: contour-packages-values

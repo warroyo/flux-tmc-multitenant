@@ -187,7 +187,11 @@ tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/dev.y
 tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/test.yaml -s clustergroup
 tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/infra-ops.yaml -s clustergroup
 ```
+This will start reconciling all of the components that we have configured to be installed using this git repo structure. Inspect each cluster and make sure Kustomizations are being created and are healthy
 
+```bash
+kubectl get kustomization -A
+```
 
 
 
