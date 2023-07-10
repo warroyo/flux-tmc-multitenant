@@ -31,29 +31,29 @@ subjects:
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
-  name: group-0001
-  namespace: group-0001
+  name: iris-green
+  namespace: iris-green
 spec:
   interval: 1m0s
   ref:
     branch: main
-  url: https://github.com/warroyo/group-0001-gitops
+  url: https://github.com/warroyo/iris-green-gitops
 
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: group-0001
-  namespace: group-0001
+  name: iris-green-dev
+  namespace: iris-green
 spec:
   interval: 10m0s
-  path: ./clusters/gke-2/namespaces
+  path: ./clusters/eks.eks-warroyo2.us-west-2.iris-dev/namespaces
   prune: true
   serviceAccountName: tenant-flux-reconciler
-  targetNamespace: group-0001
+  targetNamespace: iris-green
   sourceRef:
     kind: GitRepository
-    name: group-0001
+    name: iris-green
   patches:
     - patch: |-
         apiVersion: tmc.tanzufield.vmware.com/v1
@@ -62,11 +62,11 @@ spec:
           name: not used
         spec:
           fullName:
-            clusterName: gke-2
-            managementClusterName: attached
-            provisionerName: attached
+            clusterName: eks.eks-warroyo2.us-west-2.iris-dev
+            managementClusterName: eks
+            provisionerName: eks
           spec:
-            workspaceName: group-0001
+            workspaceName: iris-green
                   
       target:
         kind: TMCNamespace
