@@ -1,0 +1,13 @@
+fullName:
+  clusterGroupName: infra-ops
+  name: infra-gitops
+spec:
+  atomicSpec:
+    interval: 300s
+    ref:
+      branch: main
+    url: https://github.com/warroyo/flux-tmc-multitenant
+type:
+  kind: GitRepository
+  package: vmware.tanzu.manage.v1alpha1.clustergroup.namespace.fluxcd.gitrepository
+  version: v1alpha1

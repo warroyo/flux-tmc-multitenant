@@ -146,7 +146,7 @@ tanzu tmc iam role create -f tmc/iam/cluster-admin-equiv-iam.yaml
 ```
 
 
-The next role is the one that will allow the flux tenant service account in the infra-ops cluster the ability to create TMC  namespaces. this enable namespace self service.
+The next role is the one that will allow the flux tenant service account in the infra-ops cluster the ability to create TMC namespaces. this enable namespace self service.
 
 ```bash
 tanzu tmc iam role create -f tmc/iam/tmcnamespaces-iam.yaml
@@ -155,7 +155,7 @@ tanzu tmc iam role create -f tmc/iam/tmcnamespaces-iam.yaml
 
 ### Bind the roles to the service account with TMC IAM policy
 
-This first role binding is going to bind the tenants service account to the cluster admin equivalent role in the tenants workspace. This will mean that anytime a new namespace is created the service accoutn flux is using will immediately have the correct permissions on the namespace. This is very useful, without this workspace level binding we would need to use some type of controller to handle this dynamically for us.
+This first role binding is going to bind the tenants service account to the cluster admin equivalent role in the tenants workspace. This will mean that anytime a new namespace is created the service account flux is using will immediately have the correct permissions on the namespace. This is very useful, without this workspace level binding we would need to use some type of controller to handle this dynamically for us.
 
 
 ```bash
@@ -165,6 +165,29 @@ tanzu tmc iam update-policy -s workspace -n iris-red -f tmc/iam/sa-rb-workspace-
 ```
 <!-- 
 The next role binding to create is for the allowing the tenant namespace service accounts in the infra-ops cluster the ability to create TMCNamespace objects. This enables self service.  -->
+
+
+### Create the base Gitrepos for each cluster group
+
+Each cluster group will need a gitrepo added as the base git repo to bootstrap the cluster. In this case that repo is this one. This could be any git repo though as long as the structure is setup properly. 
+
+```bash
+tanzu tmc continuousdelivery gitrepository create -f tmc/continousdelivery/test-gitrepo.yaml -s clustergroup
+tanzu tmc continuousdelivery gitrepository create -f tmc/continousdelivery/dev-gitrepo.yaml -s clustergroup
+tanzu tmc continuousdelivery gitrepository create -f tmc/continousdelivery/infra-ops-gitrepo.yaml -s clustergroup
+```
+
+### Create the base Kustomizations for each cluster group
+
+Each cluster group will have an initial kustomization that points to a specific path in the git repo to bootstrap. This will create other Kustomizations that will be specific to each cluster.
+
+
+```bash
+tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/dev.yaml -s clustergroup
+tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/test.yaml -s clustergroup
+tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/infra-ops.yaml -s clustergroup
+```
+
 
 
 

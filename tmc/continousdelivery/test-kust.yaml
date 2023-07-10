@@ -1,0 +1,15 @@
+fullName:
+  clusterGroupName: test
+  name: cg-base
+spec:
+  atomicSpec:
+    interval: 300s
+    path: clustergroups/test
+    prune: true
+    source:
+      name: infra-gitops
+      namespace: tanzu-continuousdelivery-resources
+type:
+  kind: Kustomization
+  package: vmware.tanzu.manage.v1alpha1.clustergroup.namespace.fluxcd.kustomization
+  version: v1alpha1

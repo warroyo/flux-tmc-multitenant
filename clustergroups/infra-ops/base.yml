@@ -11,7 +11,7 @@ spec:
   sourceRef:
     kind: GitRepository
     namespace: tanzu-continuousdelivery-resources
-    name: infra-ops
+    name: infra-gitops
 
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -33,4 +33,4 @@ spec:
   sourceRef:
     kind: GitRepository
     namespace: tanzu-continuousdelivery-resources
-    name: infra-ops
+    name: infra-gitops
