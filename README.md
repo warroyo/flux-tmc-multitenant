@@ -57,6 +57,35 @@ The tenant repo has the following directories
 ## Initial Setup
 These steps walk through a somewhat opinionated way of organzing things. This is not the only way of doing it and is just an example. Also for any infrastructure created it's advised that this be automated rather than being done by hand, n this example we will use the cli for everything we can. If you already have existing infra, it's not necessary to create new clusters etc. just use those. Also for the purpose of this setup we will assume that we have a platform team and 3 tenants. Those tenants are all within the same product group but are different app teams. our product group name is Iris, so we will have a setup where each team gets a workspace in TMC and k8s clusters will be grouped by environment into cluster groups, each product group in this case will have a cluster(s) per environment. Our three dev teams will be called iris-green, iris-red, iris-blue.
 
+### Setup secrets management
+
+Some type of secrets management will be needed when using gitops. There are a few different approaches, but in this exmaple we will be using Azure Key Vault. This will allow us to use one bootstrap secret that can then be used by [external secrets](https://github.com/external-secrets/external-secrets) that will handle all other secrets. 
+
+
+This will not go thorugh the entire process of setting up AKV but it will include installing [external secrets with AKV](https://external-secrets.io/v0.4.1/provider-azure-key-vault/).
+
+Additionally when setting this up we will use a bootstrap credential in the clusters, however if you have pod identity setup to work with azure this could be done using a role instead of a SP.
+
+Other options:
+
+[SOPS](https://fluxcd.io/flux/guides/mozilla-sops/)
+[Sealed Secrets](https://fluxcd.io/flux/guides/sealed-secrets/)
+
+#### create the bootstrap credential in the clusters
+
+Modify the file `bootstrap/azure-secret.yaml` to have your credentials and apply it into the clusters.
+
+```bash
+kubectl apply -f  bootstrap/azure-secret.yaml
+```
+
+
+### Install the operator
+
+Since we are using gitops, this will be installed automatically though this repo. there is nothing else to do here. In the following steps the `kustomizations` will be created that deploy this.
+
+
+
 ### Create initial cluster groups
 
 For this setup we will have the following cluster groups. Since we are implementing multitenancy we will also assume that there will be multiple dev teams using a single cluster separated by namespace. 
@@ -83,7 +112,6 @@ clusters:
 * infra-ops
 * iris-dev
 * iris-test
-
 
 ### Create initial workspaces for each team
 

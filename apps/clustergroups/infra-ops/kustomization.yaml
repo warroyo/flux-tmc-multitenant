@@ -7,4 +7,5 @@ resources:
 - ../../base/cluster-name-secret/
 - ../../base/metacontroller/install.yml
 - ../../base/tmc-controller/install.yml
+- ../../base/external-secrets/install.yml
 

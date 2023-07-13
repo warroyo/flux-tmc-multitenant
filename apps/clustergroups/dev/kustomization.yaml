@@ -5,3 +5,4 @@ generatorOptions:
 
 resources:
 - ../../base/cluster-name-secret/
+- ../../base/external-secrets/install.yml
