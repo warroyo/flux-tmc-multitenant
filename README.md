@@ -66,10 +66,54 @@ This will not go thorugh the entire process of setting up AKV but it will includ
 
 Additionally when setting this up we will use a bootstrap credential in the clusters, however if you have pod identity setup to work with azure this could be done using a role instead of a SP.
 
+
 Other options:
 
 [SOPS](https://fluxcd.io/flux/guides/mozilla-sops/)
 [Sealed Secrets](https://fluxcd.io/flux/guides/sealed-secrets/)
+
+#### Secret tenancy
+
+Since this is a multitenant setup we need multitenant secrets.
+
+**Option 1** 
+
+This option is the we have implemented for this repo. 
+
+There will be one `ClusterSecretStore` this is managed by the platform admins. This could be one per cluster or env etc. but for simplicity we just have one for now. The Key Vault in azure will be prefix based. this means the structure will be something like `/iris-green/*/*` this would then mean that per workspace(tenant) a policy will enforce what they can access. 
+
+
+This approach still leaves the option open for developers to create their own namespace bound `secretStores` but it is up to them to botstrap the credentials for those.If desired, the cluster secret store could even be used as a way to key the other boostrap creds into the clusters. 
+
+Pros:
+* optional partial self service for tenants
+* centralized vault so tenants don't need to worry about managing vaults
+* works well in a managed platform environment
+Cons:
+* bootstrap secrets required
+* some custom automation may be required to enable secret creation.
+
+**Option 2** 
+
+This option works well for teams that manage their own AKV instances and also if your clusters are federated with Azure(AKS or using [workload-identity](https://azure.github.io/azure-workload-identity/docs/introduction.html)) and can use workload identities. In this setup tenants will manage their own `secretStores` in their namespaces. This does not require any setup from the platform admin team outside of installing the operator which this repo already handles.
+
+Pros:
+* self service for tenants
+* no secrets invovled to bootstrap
+* works well in an environment with more advanced tenants
+Cons:
+* no centralized control of vault so more effort for tenants(less platform like)
+* advanced setup of identities outside of AKS
+
+This repo does not cover the scope of setting up workload identity for Azure, but the [quickstart](https://azure.github.io/azure-workload-identity/docs/quick-start.html) here does  a nice job of explaining. Once this is complete the below process can be used by tenants or admins to access their vaults.
+
+As a tenant:
+
+1. create a k8s service account in my namespace and assign it a workload identity that has permissions to the vault. docs [here](https://azure.github.io/azure-workload-identity/docs/topics/azwi/serviceaccount-create.html).
+2. create a `secretStore` in my namespace and set the service account ref field to use the previosuly created account.  docs [here](https://external-secrets.io/v0.8.5/provider/azure-key-vault/#referenced-service-account).
+3. start using `externalSecrets` to consume secrets.
+
+
 
 #### create the bootstrap credential in the clusters
 
@@ -80,11 +124,9 @@ kubectl apply -f  bootstrap/azure-secret.yaml
 ```
 
 
-### Install the operator
+#### Install the operator
 
-Since we are using gitops, this will be installed automatically though this repo. there is nothing else to do here. In the following steps the `kustomizations` will be created that deploy this.
-
-
+Since we are using gitops, this will be installed automatically though this repo. there is nothing else to do here. In the following steps the `kustomizations` will be created that deploy this. 
 
 ### Create initial cluster groups
 
