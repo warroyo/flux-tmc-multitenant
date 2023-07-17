@@ -6,7 +6,7 @@ metadata:
   namespace: tanzu-continuousdelivery-resources
 spec:
   interval: 10m0s
-  path: ./infrastructure/package-pre-reqs
+  path: ./infrastructure/package-prereqs
   prune: true
   sourceRef:
     kind: GitRepository
