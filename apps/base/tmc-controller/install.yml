@@ -41,7 +41,7 @@ apiVersion: external-secrets.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: tmcinfo
-  namespace: metacontrollers
+  namespace: metacontroller
 spec:
   refreshInterval: 1h
   secretStoreRef:
