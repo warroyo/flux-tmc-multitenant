@@ -57,6 +57,25 @@ The tenant repo has the following directories
 ## Initial Setup
 These steps walk through a somewhat opinionated way of organzing things. This is not the only way of doing it and is just an example. Also for any infrastructure created it's advised that this be automated rather than being done by hand, n this example we will use the cli for everything we can. If you already have existing infra, it's not necessary to create new clusters etc. just use those. Also for the purpose of this setup we will assume that we have a platform team and 3 tenants. Those tenants are all within the same product group but are different app teams. our product group name is Iris, so we will have a setup where each team gets a workspace in TMC and k8s clusters will be grouped by environment into cluster groups, each product group in this case will have a cluster(s) per environment. Our three dev teams will be called iris-green, iris-red, iris-blue.
 
+ 
+
+### Create initial cluster groups
+
+For this setup we will have the following cluster groups. Since we are implementing multitenancy we will also assume that there will be multiple dev teams using a single cluster separated by namespace. 
+
+* infra-ops -  used by platform admins
+* dev -  tenants will exist here to deploy dev code
+* test -  tenants will exist here to deploy tes code
+
+
+Create these cluster groups in TMC:
+
+```bash
+tanzu tmc clustergroup create -f tmc/clustergroups/infra-ops.yaml
+tanzu tmc clustergroup create -f tmc/clustergroups/dev.yaml
+tanzu tmc clustergroup create -f tmc/clustergroups/test.yaml
+```
+
 ### Setup secrets management
 
 Some type of secrets management will be needed when using gitops. There are a few different approaches, but in this exmaple we will be using Azure Key Vault. This will allow us to use one bootstrap secret that can then be used by [external secrets](https://github.com/external-secrets/external-secrets) that will handle all other secrets. 
@@ -80,10 +99,10 @@ Since this is a multitenant setup we need multitenant secrets.
 
 This option is the we have implemented for this repo. 
 
-There will be one `ClusterSecretStore` this is managed by the platform admins. This could be one per cluster or env etc. but for simplicity we just have one for now. The Key Vault in azure will be prefix based. this means the structure will be something like `/iris-green/*/*` this would then mean that per workspace(tenant) a policy will enforce what they can access. 
+There will be one `ClusterSecretStore` this is managed by the platform admins. This could be one per cluster or env etc. but for simplicity we just have one for now. The secrets in AKV will be based on a naming convention, this will allow for policy based access to secrets. The naming will be something along the lines of `$tenant-$secretname` this would then mean that per workspace(tenant) a policy will enforce what they can access. You can read more about the inspiration for this in [Dodd Pfeffer's](https://github.com/doddatpivotal) detailed blog post [here](https://dodd-pfeffer.medium.com/deliver-secure-access-to-azure-key-vault-from-aks-powered-by-tanzu-dfdfc98138c5)
 
 
-This approach still leaves the option open for developers to create their own namespace bound `secretStores` but it is up to them to botstrap the credentials for those.If desired, the cluster secret store could even be used as a way to key the other boostrap creds into the clusters. 
+This approach still leaves the option open for developers to create their own namespace bound `secretStores` but it is up to them to botstrap the credentials for those. If desired, the cluster secret store could even be used as a way to key the other boostrap creds into the clusters. 
 
 Pros:
 * optional partial self service for tenants
@@ -92,6 +111,31 @@ Pros:
 Cons:
 * bootstrap secrets required
 * some custom automation may be required to enable secret creation.
+
+
+As a Platform admin:
+
+1. Create centralized keyvault in azure
+2. Create a Azure SP that has read access to the keyvault 
+3. bootstrap the cluster with the credentials created above. this needs to be done per cluster and should be automated with your cluster creation process. Modify the file `bootstrap/azure-secret.yaml` to have your credentials and apply it into the clusters.
+
+```bash
+kubectl apply -f  bootstrap/azure-secret.yaml
+```
+
+4. create a policy in TMC using gatekeeper to prevent tenants from accessing eachothers secrets and apply it to the two cluster groups. This policy will make sure that the naming convention matches the tenant workspace label on the namepsace. becuase of the access given to tenants they will not be able to modify this label so it is a good identifier to match on. The policy will match any namespace with the `tmc.cloud.vmware.com/workspace` label, this can be changed to meet your needs. for example you could have a list of workspaces to apply this to using the same label but with a list of values to match.
+
+```bash
+tanzu tmc policy policy-template create --object-file tmc/policy/enforce-es-naming-template.yaml --data-inventory "/v1/Namespace"
+tanzu tmc policy create -f tmc/policy/enforce-es-naming-dev.yaml -s clustergroup
+tanzu tmc policy create -f tmc/policy/enforce-es-naming-test.yaml -s clustergroup
+```
+
+5. create secrets in the key vault for the tenants. This document does not cover the automation, but this could be done with a process that allows tenants to manage their own creential entries.
+
+As a tenant:
+
+1. create an external secret object that references the secret you want in your namespace.
 
 **Option 2** 
 
@@ -115,35 +159,10 @@ As a tenant:
 
 
 
-#### create the bootstrap credential in the clusters
-
-Modify the file `bootstrap/azure-secret.yaml` to have your credentials and apply it into the clusters.
-
-```bash
-kubectl apply -f  bootstrap/azure-secret.yaml
-```
-
-
 #### Install the operator
 
-Since we are using gitops, this will be installed automatically though this repo. there is nothing else to do here. In the following steps the `kustomizations` will be created that deploy this. 
+Since we are using gitops, this will be installed automatically though this repo. there is nothing else to do here. In the following steps the `kustomizations` will be created that deploy this.
 
-### Create initial cluster groups
-
-For this setup we will have the following cluster groups. Since we are implementing multitenancy we will also assume that there will be multiple dev teams using a single cluster separated by namespace. 
-
-* infra-ops -  used by platform admins
-* dev -  tenants will exist here to deploy dev code
-* test -  tenants will exist here to deploy tes code
-
-
-Create these cluster groups in TMC:
-
-```bash
-tanzu tmc clustergroup create -f tmc/clustergroups/infra-ops.yaml
-tanzu tmc clustergroup create -f tmc/clustergroups/dev.yaml
-tanzu tmc clustergroup create -f tmc/clustergroups/test.yaml
-```
 
 ### Create initial clusters
 

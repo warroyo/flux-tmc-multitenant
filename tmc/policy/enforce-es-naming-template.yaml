@@ -1,0 +1,31 @@
+---
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: esbeginswith
+spec:
+  crd:
+    spec:
+      names:
+        kind: esbeginswith
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package esbeginswith
+
+        violation[{"msg": msg}] {
+          namespace := input.review.object.metadata.namespace
+          secretrefs := input.review.object.spec.dataFrom[_].key
+          target := data.inventory.cluster["v1"]["Namespace"][namespace]
+          regexp := concat("", ["^",target.metadata.labels[input.parameters.label],"\\W"])
+          not regex.match(regexp, secretrefs)
+          msg := sprintf("Data From key %v not allowed in Namespace %v",[secretrefs, namespace])
+        }
+        violation[{"msg": msg}] {
+          namespace := input.review.object.metadata.namespace
+          secretrefs := input.review.object.spec.data[_].remoteRef.key
+          target := data.inventory.cluster["v1"]["Namespace"][namespace]
+          regexp := concat("", ["^",target.metadata.labels[input.parameters.label],"\\W"])
+          not regex.match(regexp, secretrefs)
+          msg := sprintf("Data key remote ref %v not allowed in namespace %v",[secretrefs, namespace])
+        }

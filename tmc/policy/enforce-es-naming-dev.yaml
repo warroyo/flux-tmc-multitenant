@@ -1,0 +1,21 @@
+---
+fullName:
+  name: es-access-by-label
+  clusterGroupName: dev
+spec:
+  input:
+    enforcementAction: deny
+    parameters:
+      label: tmc.cloud.vmware.com/workspace
+    targetKubernetesResources:
+    - apiGroups:
+      - external-secrets.io
+      kinds:
+      - ExternalSecret
+  namespaceSelector:
+    matchExpressions:
+    - key: tmc.cloud.vmware.com/workspace
+      operator: Exists
+  recipe: esbeginswith
+  recipeVersion: v1
+  type: custom-policy

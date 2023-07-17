@@ -1,0 +1,8 @@
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: cert-manager
+  namespace: flux-system
+  annotations:
+    environment: dev
