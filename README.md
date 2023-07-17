@@ -99,7 +99,7 @@ Since this is a multitenant setup we need multitenant secrets.
 
 This option is the we have implemented for this repo. 
 
-There will be one `ClusterSecretStore` this is managed by the platform admins. This could be one per cluster or env etc. but for simplicity we just have one for now. The secrets in AKV will be based on a naming convention, this will allow for policy based access to secrets. The naming will be something along the lines of `$tenant-$secretname` this would then mean that per workspace(tenant) a policy will enforce what they can access. You can read more about the inspiration for this in [Dodd Pfeffer's](https://github.com/doddatpivotal) detailed blog post [here](https://dodd-pfeffer.medium.com/deliver-secure-access-to-azure-key-vault-from-aks-powered-by-tanzu-dfdfc98138c5)
+There will be one `ClusterSecretStore` this is managed by the platform admins. we will create one AKV per environment. The secrets in AKV will be based on a naming convention, this will allow for policy based access to secrets. The naming will be something along the lines of `$tenant-$secretname` this would then mean that per workspace(tenant) a policy will enforce what they can access. You can read more about the inspiration for this in [Dodd Pfeffer's](https://github.com/doddatpivotal) detailed blog post [here](https://dodd-pfeffer.medium.com/deliver-secure-access-to-azure-key-vault-from-aks-powered-by-tanzu-dfdfc98138c5)
 
 
 This approach still leaves the option open for developers to create their own namespace bound `secretStores` but it is up to them to botstrap the credentials for those. If desired, the cluster secret store could even be used as a way to key the other boostrap creds into the clusters. 

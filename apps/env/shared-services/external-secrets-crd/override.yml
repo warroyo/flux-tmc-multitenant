@@ -1,0 +1,12 @@
+apiVersion: external-secrets.io/v1alpha1
+kind: ClusterSecretStore
+metadata:
+  name: cluster-wide-store
+spec:
+  provider:
+    # provider type: azure keyvault
+    azurekv:
+      # azure tenant ID, see: https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant
+      tenantId: "b39138ca-3cee-4b4a-a4d6-cd83d9dd62f0"
+      # URL of your vault instance, see: https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates
+      vaultUrl: "https://ss-env.vault.azure.net"
