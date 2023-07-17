@@ -36,3 +36,27 @@ spec:
     kind: GitRepository
     namespace: tanzu-continuousdelivery-resources
     name: metacontrollers
+---
+apiVersion: external-secrets.io/v1alpha1
+kind: ExternalSecret
+metadata:
+  name: tmcinfo
+  namespace: metacontrollers
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: cluster-wide-store
+
+  target:
+    name: tmcinfo
+    creationPolicy: Owner
+
+  data:
+  # name of the SECRET in the Azure KV (no prefix is by default a SECRET)
+  - secretKey: CSP_TOKEN
+    remoteRef:
+      key: tmc-csp-token
+  - secretKey: TMC_HOST
+    remoteRef:
+      key: tmc-host
