@@ -22,7 +22,7 @@ spec:
   dependsOn: 
     - name: infra-pre-reqs
   interval: 10m0s
-  path: ./infrastructure/env/dev
+  path: ./infrastructure/env/shared-services
   prune: true
   sourceRef:
     kind: GitRepository
