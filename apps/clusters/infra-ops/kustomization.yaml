@@ -4,7 +4,7 @@ generatorOptions:
   disableNameSuffixHash: true
 
 resources:
-- ../../base/external-secrets-crd
+- ../../base/external-secrets-crd/css.yml
 
 
 components:
