@@ -4,3 +4,4 @@ namespace: infra-packages
 resources:
   - cert-manager
   - package-prereqs
+  - external-secrets
