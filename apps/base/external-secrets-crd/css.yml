@@ -16,6 +16,8 @@ spec:
         clientId:
           name: azure-secret-sp
           key: ClientID
+          namespace: external-secrets
         clientSecret:
           name: azure-secret-sp
           key: ClientSecret
+          namespace: external-secrets
