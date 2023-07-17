@@ -1,7 +1,7 @@
 apiVersion: external-secrets.io/v1alpha1
 kind: ClusterSecretStore
 metadata:
-  name: example-secret-store
+  name: cluster-wide-store
 spec:
   provider:
     # provider type: azure keyvault
