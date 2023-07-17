@@ -20,7 +20,7 @@ metadata:
   namespace: tanzu-continuousdelivery-resources
 spec:
   dependsOn: 
-    - infra-pre-reqs
+    - name: infra-pre-reqs
   interval: 10m0s
   path: ./infrastructure/env/dev
   prune: true
