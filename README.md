@@ -22,7 +22,7 @@ This repo serves as a starting point for managing multi-tenant clusters using Fl
 * Manages `GitRepositories`, `Kustomizations`, `HelmRepositories` and `HelmReleases` in their namespaces
 * has editor access into thier TMC workspace
 
-# How it works
+## How it works
 
 TMC has the concept of a workspace which can group multiple namespaces across clusters under a single space. Using this concept we can create a tenancy model around namespaces in a cluster. This workspace concept is core to the multitenancy in this repo. The way this tenancy model works is this:
 
@@ -31,6 +31,7 @@ TMC has the concept of a workspace which can group multiple namespaces across cl
 *  The bootstrap namespace service account is given permissions in TMC to the workspace. *** This is a key piece in that TMC handles propogating the permissions on the service account to access the tenants other namespaces. without TMC doing this another tool is needed to handle this, it's not native to k8s. ***
 *  A TMC custom OPA policy is used to enforce that the tenants kustomizations and other flux reosurces use a service account. this prevents the flux controller from operating as cluster admin. This si cirtical in limiting the tenants access.
 *  Enforcing namespace creation through flux allows for the platform admins to overwrite the critical fields to make sure namespaces are created in the right workspace.
+
   
 
 
@@ -40,22 +41,28 @@ TMC has the concept of a workspace which can group multiple namespaces across cl
 
 The platform admin repo has the following directories
 
-* clustergroups - this contains directories with Flux config for each group. This is where the base bootstrap config lives. This is used when initially configuring a cluster group's `Kustomization` in TMC. Everything is initiated from here.
-* clusters - this contains directories with Flux config for each cluster. This is what will hold each clusters base configuration that gets boostrapped from the cluster group.
-* infrastructure - contains Flux config to install common infra tools used by multiple clusters.
-* apps - 
+* **clustergroups** - this contains directories with Flux config for each group. This is where the base bootstrap config lives. This is used when initially configuring a cluster group's `Kustomization` in TMC. Everything is initiated from here.
+* **clusters** - this contains directories with Flux config for each cluster. This is what will hold each clusters base configuration that gets boostrapped from the cluster group.
+* **infrastructure** - contains Flux config to install common infra tools used by multiple clusters.
+* **apps** - contains all of the app configs that will be installed per cluster or clustergroup
+* **bootstrap** - bootstrap credential yaml template
+* **tmc** - contains all of the tmc yaml for creating tmc objects
 
 
 The tenant repo has the following directories
 
-* clusters -  this has a directory for each cluster. this will be the reference point for the tenants configured in the platform admin repo. This is used as a bootstrap for the tenant to configure their own kustomizations.
-* clusters/<clustername>/namespaces - this nested directory is where tenants place thier namespace yaml for namespace self service.
+* **clusters** -  this has a directory for each cluster. this will be the reference point for the tenants configured in the platform admin repo. This is used as a bootstrap for the tenant to configure their own kustomizations.
+* **clusters/<clustername>/namespaces** - this nested directory is where tenants place thier namespace yaml for namespace self service.
 
 
 
 
 ## Initial Setup
 These steps walk through a somewhat opinionated way of organzing things. This is not the only way of doing it and is just an example. Also for any infrastructure created it's advised that this be automated rather than being done by hand, n this example we will use the cli for everything we can. If you already have existing infra, it's not necessary to create new clusters etc. just use those. Also for the purpose of this setup we will assume that we have a platform team and 3 tenants. Those tenants are all within the same product group but are different app teams. our product group name is Iris, so we will have a setup where each team gets a workspace in TMC and k8s clusters will be grouped by environment into cluster groups, each product group in this case will have a cluster(s) per environment. Our three dev teams will be called iris-green, iris-red, iris-blue.
+
+### Explaining the Infra-Ops cluster
+
+In the next few section it will refer to an "infra-ops" cluster. This cluster is not something that tenants will deploy onto. This cluster is used by platform admins to run thier workloads for mgmt purposes. specifically in this case it is used to run the [tmc-controller](https://github.com/warroyo/metacontrollers/tree/main/tmc-controller) this is a metacontroller that is used for creating TMC namespaces. This allows for self service management of namespaces in TMC with gitops. 
 
  
 
@@ -75,6 +82,30 @@ tanzu tmc clustergroup create -f tmc/clustergroups/infra-ops.yaml
 tanzu tmc clustergroup create -f tmc/clustergroups/dev.yaml
 tanzu tmc clustergroup create -f tmc/clustergroups/test.yaml
 ```
+
+
+
+### Create initial clusters
+
+This will not walk through creating the clusters needed since it's out of scope, but create the following cluster's on your favorite flavor of k8s and put them in the respective cluster groups.
+
+clusters:
+
+* infra-ops
+* iris-dev
+* iris-test
+
+### Create initial workspaces for each team
+
+Each team gets their own workspace in which all of their namespaces will be created
+
+
+```bash
+tanzu tmc workspace create -f tmc/workspaces/iris-green.yaml
+tanzu tmc workspace create -f tmc/workspaces/iris-blue.yaml
+tanzu tmc workspace create -f tmc/workspaces/iris-red.yaml
+```
+
 
 ### Setup secrets management
 
@@ -115,7 +146,10 @@ Cons:
 
 As a Platform admin:
 
-1. Create centralized keyvault in azure
+1. Create centralized keyvault in azure per environment. for this setup create the following
+   1. `ss-env`  - this is the shared service environment vault(mostly used for platform stuff)
+   2. `dev-env` - dev env vault
+   3. `test-env` - test env vault
 2. Create a Azure SP that has read access to the keyvault 
 3. bootstrap the cluster with the credentials created above. this needs to be done per cluster and should be automated with your cluster creation process. Modify the file `bootstrap/azure-secret.yaml` to have your credentials and apply it into the clusters.
 
@@ -131,7 +165,9 @@ tanzu tmc policy create -f tmc/policy/enforce-es-naming-dev.yaml -s clustergroup
 tanzu tmc policy create -f tmc/policy/enforce-es-naming-test.yaml -s clustergroup
 ```
 
-5. create secrets in the key vault for the tenants. This document does not cover the automation, but this could be done with a process that allows tenants to manage their own creential entries.
+5. Update the `ClusterSecretStore` details in the git repo. Under `apps/env/<env-name>/external-secrets-crd` there is an override yaml. update this with your tenant id and vault url for each environment. 
+
+6. create secrets in the key vault for the tenants. This document does not cover the automation, but this could be done with a process that allows tenants to manage their own creential entries.
 
 As a tenant:
 
@@ -163,35 +199,6 @@ As a tenant:
 
 Since we are using gitops, this will be installed automatically though this repo. there is nothing else to do here. In the following steps the `kustomizations` will be created that deploy this.
 
-
-### Create initial clusters
-
-This will not walk through creating the clusters needed since it's out of scope, but create the following cluster's on your favorite flavor of k8s and put them in the respective cluster groups.
-
-clusters:
-
-* infra-ops
-* iris-dev
-* iris-test
-
-### Create initial workspaces for each team
-
-Each team gets their own workspace in which all of their namespaces will be created
-
-
-```bash
-tanzu tmc workspace create -f tmc/workspaces/iris-green.yaml
-tanzu tmc workspace create -f tmc/workspaces/iris-blue.yaml
-tanzu tmc workspace create -f tmc/workspaces/iris-red.yaml
-```
-
-<!-- ### Create the workspace for the tenant namepsaces in the infra-ops cluster
-
-We will group all tenant namespaces in the infra-ops cluster into the same workspace to make it easier to manage permissions on them. Tenants will not have direct access to these namespaces and can only interact through gitops with very limited permissions.
-
-```bash
-tanzu tmc workspace create -f tmc/workspaces/tenants-infra-ops.yaml
-``` -->
 
 ### Enable CD components on the cluster groups for TMC
 
