@@ -136,12 +136,25 @@ apps
 │               └── override.yml
 ```
 
+subdirectories/files:
+* `base` - contains folders for each app to be installed in the clusters.
+* `clustergroups` - contains folders for each clustergroup. This allows for adding config to install certain apps and overrides per cluster group.
+* `clusters` - contains folders for each cluster. This allows for adding config to install certain apps and overrides per cluster.
+* `env` - contains folders for every environment. 
+* `env/<environment>/<some-app>` - holds any environment specific overrides for that app.
 
 ### bootstrap
-bootstrap credential yaml template
+
+this directory holds the template for the azure-sp credential to setup secrets managment.
+
+```
+ bootstrap
+ └── azure-secret.yaml
+```
 ### tmc
 
-contains all of the tmc yaml for creating tmc objects
+Contains any yaml needed for creating TMC objects with the CLI. 
+
 
 ## Tenant repo structure
 
@@ -403,7 +416,7 @@ Here is a breakdown on what gets installed and how. This does not cover the init
 2. From that folder two more kustomizations are created `group-apps` and `clustergroup-gitops`
 3. `group-apps` points at `/apps/clustergroups/infra-ops`. This installs the metacontroller and the tmc controller from the `apps/base` directory. these are kustomizations that point at other git repos. 
 4. `clustergroup-gitops` bootstraps the cluster specific `kustomization` called `cluster-gitops` 
-5. `cluster-gitops` points at `/clusters/eks.eks-warroyo2.us-west-2.infra-ops` which creates a few more kustomizations `infrastructure`, `apps`, `infra-pre-reqs` and the tenant specific kustomizations. Read more about the standard repo stucture [above](#Repo structure) for details on what each kustomization's purpose is.
+5. `cluster-gitops` points at `/clusters/eks.eks-warroyo2.us-west-2.infra-ops` which creates a few more kustomizations `infrastructure`, `apps`, `infra-pre-reqs` and the tenant specific kustomizations. Read more about the standard repo stucture [above](#Platform-admin-repo-structure) for details on what each kustomization's purpose is.
 6. 
 
 
