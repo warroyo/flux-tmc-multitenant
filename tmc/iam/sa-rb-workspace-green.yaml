@@ -2,4 +2,4 @@ roleBindings:
   - role: cluster-admin-equiv
     subjects:
     - kind: K8S_SERVICEACCOUNT
-      name: iris-blue:tenant-flux-reconciler
+      name: iris-green:tenant-flux-reconciler

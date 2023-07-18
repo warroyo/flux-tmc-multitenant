@@ -32,9 +32,18 @@ TMC has the concept of a workspace which can group multiple namespaces across cl
 *  A TMC custom OPA policy is used to enforce that the tenants kustomizations and other flux reosurces use a service account. this prevents the flux controller from operating as cluster admin. This si cirtical in limiting the tenants access.
 *  Enforcing namespace creation through flux allows for the platform admins to overwrite the critical fields to make sure namespaces are created in the right workspace.
 
-  
+### Clustergroup bootstrapping
 
+One key element to this setup is how every cluster gets bootstrapped with the right flux config and paths. The approach used here is to only enable the TMC CD components at the clustergroup level. The typical challenge with this approach is that setting a `kustomization` at the clustergroup level means you cannot override the path per cluster and means everything needs to be the same in each cluster. This is not the case in most situations so in order for this to work we need every cluster to be able to override clustergroup configuration. This is done by using a combination of carvel tooling, tmc provided information and flux variables injection. Here is a breakdown of the process.
 
+1. when a clustergroup kustomization is created it will point to the folder `clustergroups/<groupname>`
+2. from there two other kustomizations are created `clustergroup-gitops` and `group-apps`
+3. `group-apps` points to `apps/clustergroups/<groupname>` which defines any group level apps that need to be installed. most importantly it installs the `apps/base/cluster-name-secret` 
+4. the `cluster-name-secret` app in this case is using [carvel secretgen](https://github.com/carvel-dev/secretgen-controller) to create a secret containing the cluster name from the tmc provided configmap `stack-config` and then using a `secretExport` and `secretImport` to copy that secret into the `tanzu-continous-delivery-resources` namespace.
+5. `clustergroup-gitops` depends on `group-apps` and points to `clustergroups/common/per-cluster` where it creates a `kustomization` called `cluster-gitops` also it uses the flux `substituteFrom` capability to inject the cluster name from the previosuly created secret as a variable for use.
+6. `cluster-gitops` creates a path dynamically using the cluster name to point to `clusters/<clustername>` which allows for cluster specific flux configuration.
+
+Using this structure we can now set a single kustomization at the clustergroup level and have it dynamically create cluster specific `kustomizations` 
 
 
 ## Repo structure
@@ -58,11 +67,11 @@ The tenant repo has the following directories
 
 
 ## Initial Setup
-These steps walk through a somewhat opinionated way of organzing things. This is not the only way of doing it and is just an example. Also for any infrastructure created it's advised that this be automated rather than being done by hand, n this example we will use the cli for everything we can. If you already have existing infra, it's not necessary to create new clusters etc. just use those. Also for the purpose of this setup we will assume that we have a platform team and 3 tenants. Those tenants are all within the same product group but are different app teams. our product group name is Iris, so we will have a setup where each team gets a workspace in TMC and k8s clusters will be grouped by environment into cluster groups, each product group in this case will have a cluster(s) per environment. Our three dev teams will be called iris-green, iris-red, iris-blue.
+These steps walk through a somewhat opinionated way of organzing things. This is not the only way of doing it and is just an example. Also for any infrastructure created it's advised that this be automated rather than being done by hand, in this example we will use the cli for everything we can. If you already have existing infra, it's not necessary to create new clusters etc. just use those. Also for the purpose of this setup we will assume that we have a platform team and 3 tenants. Those tenants are all within the same product group but are different app teams. our product group name is Iris, so we will have a setup where each team gets a workspace in TMC and k8s clusters will be grouped by environment into cluster groups, each product group in this case will have a cluster(s) per environment. Our three dev teams will be called iris-green, iris-red, iris-blue.
 
 ### Explaining the Infra-Ops cluster
 
-In the next few section it will refer to an "infra-ops" cluster. This cluster is not something that tenants will deploy onto. This cluster is used by platform admins to run thier workloads for mgmt purposes. specifically in this case it is used to run the [tmc-controller](https://github.com/warroyo/metacontrollers/tree/main/tmc-controller) this is a metacontroller that is used for creating TMC namespaces. This allows for self service management of namespaces in TMC with gitops. 
+In the next few sections it will refer to an "infra-ops" cluster. This cluster is not something that tenants will deploy onto. This cluster is used by platform admins to run thier workloads for mgmt purposes. Specifically in this case it is used to run the [tmc-controller](https://github.com/warroyo/metacontrollers/tree/main/tmc-controller) this is a metacontroller that is used for creating TMC namespaces. This allows for self service management of namespaces in TMC with gitops. 
 
  
 
@@ -114,7 +123,7 @@ Some type of secrets management will be needed when using gitops. There are a fe
 
 This will not go thorugh the entire process of setting up AKV but it will include installing [external secrets with AKV](https://external-secrets.io/v0.4.1/provider-azure-key-vault/).
 
-Additionally when setting this up we will use a bootstrap credential in the clusters, however if you have pod identity setup to work with azure this could be done using a role instead of a SP.
+Additionally when setting this up we will use a bootstrap credential in the clusters, however if you have workload identity setup to work with azure this could be done using a role instead of a SP.
 
 
 Other options:
@@ -130,13 +139,13 @@ Since this is a multitenant setup we need multitenant secrets.
 
 This option is the we have implemented for this repo. 
 
-There will be one `ClusterSecretStore` this is managed by the platform admins. we will create one AKV per environment. The secrets in AKV will be based on a naming convention, this will allow for policy based access to secrets. The naming will be something along the lines of `$tenant-$secretname` this would then mean that per workspace(tenant) a policy will enforce what they can access. You can read more about the inspiration for this in [Dodd Pfeffer's](https://github.com/doddatpivotal) detailed blog post [here](https://dodd-pfeffer.medium.com/deliver-secure-access-to-azure-key-vault-from-aks-powered-by-tanzu-dfdfc98138c5)
+There will be one `ClusterSecretStore` that is managed by the platform admins. We will create one AKV per environment. The secrets in AKV will be based on a naming convention, this will allow for policy based access to secrets. The naming will be something along the lines of `$tenant-$secretname` this would then mean that per workspace(tenant) a policy will enforce what they can access. You can read more about the inspiration for this in [Dodd Pfeffer's](https://github.com/doddatpivotal) detailed blog post [here](https://dodd-pfeffer.medium.com/deliver-secure-access-to-azure-key-vault-from-aks-powered-by-tanzu-dfdfc98138c5)
 
 
-This approach still leaves the option open for developers to create their own namespace bound `secretStores` but it is up to them to botstrap the credentials for those. If desired, the cluster secret store could even be used as a way to key the other boostrap creds into the clusters. 
+This approach still leaves the option open for developers to create their own namespace bound `secretStores` but it is up to them to botstrap the credentials for those. If desired, the cluster secret store could even be used as a way to inject the namespace based `secretstore` boostrap creds into the clusters. 
 
 Pros:
-* optional partial self service for tenants
+* optional self service for tenants
 * centralized vault so tenants don't need to worry about managing vaults
 * works well in a managed platform environment
 Cons:
@@ -157,7 +166,7 @@ As a Platform admin:
 kubectl apply -f  bootstrap/azure-secret.yaml
 ```
 
-4. create a policy in TMC using gatekeeper to prevent tenants from accessing eachothers secrets and apply it to the two cluster groups. This policy will make sure that the naming convention matches the tenant workspace label on the namepsace. becuase of the access given to tenants they will not be able to modify this label so it is a good identifier to match on. The policy will match any namespace with the `tmc.cloud.vmware.com/workspace` label, this can be changed to meet your needs. for example you could have a list of workspaces to apply this to using the same label but with a list of values to match.
+4. create a policy in TMC using gatekeeper to prevent tenants from accessing eachothers secrets and apply it to the two cluster groups. This policy will make sure that the naming convention matches the tenant workspace label on the namepsace. becuase of the access given to tenants they will not be able to modify this label so it is a good identifier to match on. The policy will match any namespace with the `tmc.cloud.vmware.com/workspace` label, this can be changed to meet your needs. For example you could have a list of workspaces to apply this to using the same label but with a list of values to match.
 
 ```bash
 tanzu tmc policy policy-template create --object-file tmc/policy/enforce-es-naming-template.yaml --data-inventory "/v1/Namespace"
@@ -218,7 +227,7 @@ tanzu tmc helm enable -g test -s clustergroup
 
 ### Create the custom TMC policy to enforce service account usage
 
-We need to create an Gatekeeper constraint template that will allow us to enforce service account usage on the flux CRDs. Thsi prevents tenants from being able to use admin level creds with flux.
+We need to create an Gatekeeper constraint template that will allow us to enforce service account usage on the flux CRDs. This prevents tenants from being able to use admin level creds with flux.
 
 ```bash
 tanzu tmc policy policy-template create --object-file tmc/policy/enforce-sa-template.yaml
@@ -242,7 +251,7 @@ tanzu tmc iam role create -f tmc/iam/cluster-admin-equiv-iam.yaml
 ```
 
 
-The next role is the one that will allow the flux tenant service account in the infra-ops cluster the ability to create TMC namespaces. this enable namespace self service.
+The next role is the one that will allow the flux tenant service account in the infra-ops cluster the ability to create TMC namespaces. this enables namespace self service.
 
 ```bash
 tanzu tmc iam role create -f tmc/iam/tmcnamespaces-iam.yaml
@@ -251,7 +260,7 @@ tanzu tmc iam role create -f tmc/iam/tmcnamespaces-iam.yaml
 
 ### Bind the roles to the service account with TMC IAM policy
 
-This first role binding is going to bind the tenants service account to the cluster admin equivalent role in the tenants workspace. This will mean that anytime a new namespace is created the service account flux is using will immediately have the correct permissions on the namespace. This is very useful, without this workspace level binding we would need to use some type of controller to handle this dynamically for us.
+This role binding is going to bind the tenants service account to the cluster admin equivalent role in the tenants workspace. This will mean that anytime a new namespace is created the service account flux is using will immediately have the correct permissions on the namespace. This is very useful, without this workspace level binding we would need to use some type of controller to handle this dynamically for us.
 
 
 ```bash
@@ -259,8 +268,6 @@ tanzu tmc iam update-policy -s workspace -n iris-blue -f tmc/iam/sa-rb-workspace
 tanzu tmc iam update-policy -s workspace -n iris-green -f tmc/iam/sa-rb-workspace-green.yaml
 tanzu tmc iam update-policy -s workspace -n iris-red -f tmc/iam/sa-rb-workspace-red.yaml
 ```
-<!-- 
-The next role binding to create is for the allowing the tenant namespace service accounts in the infra-ops cluster the ability to create TMCNamespace objects. This enables self service.  -->
 
 
 ### Create the base Gitrepos for each cluster group
@@ -272,6 +279,58 @@ tanzu tmc continuousdelivery gitrepository create -f tmc/continousdelivery/test-
 tanzu tmc continuousdelivery gitrepository create -f tmc/continousdelivery/dev-gitrepo.yaml -s clustergroup
 tanzu tmc continuousdelivery gitrepository create -f tmc/continousdelivery/infra-ops-gitrepo.yaml -s clustergroup
 ```
+
+
+
+### Setup the Infra-Ops Cluster
+
+The infra ops cluster should be a one time setup since there is not one per tenant. This cluster will host our TMC Controller that enables the self service of namespaces.
+
+#### Create the TMC credential
+
+The infra-ops cluster needs to be able to communicate with the TMC API. Create a credential in the `ss-env` AKV for the TMC API token.
+
+1. create a TMC API token
+2. create the AKV entries. 
+
+```bash
+az keyvault secret set --vault-name "ss-env" --name "CSP_TOKEN" --value "<tmc-api-token>"
+az keyvault secret set --vault-name "ss-env" --name "TMC_HOST" --value "<tmc-hostname>"
+```
+
+#### Setup the bootstrap Kustomization
+
+By enabling this bootstrap kustomization it will start the process of installing all of the required tools on the infra-ops clusters. 
+
+```bash
+tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/infra-ops.yaml -s clustergroup
+```
+
+Here is a breakdown on what gets installed and how.
+
+1. The kustomization created above points to this path `clustergroups/infra-ops` in this repo. 
+2. From that folder two more kustomizations are created `group-apps` and `clustergroup-gitops`
+3. `group-apps` points at `/apps/clustergroups/infra-ops` this installs any apps that are needed at the clustergroup level. In this case it installs the metacontroller, the tmc controller, and the secretexports that allow for cluster based bootstrapping.  
+4. `clustergroup-gitops` depends on `group-apps`
+
+
+
+### Summary of initial setup
+
+At this point all of the one time setup has been complete. This means that we can now onboard tenants and/or new clusters. 
+
+
+Here is a summary of what was created:
+
+* clusters for each env
+* infra-ops cluster with TMC controller
+* workspaces for each team
+* cluster groups for each environment
+* policies for enforcing tenancy
+* IAM policy for enforcing tenancy
+* enabling base flux components at the cluster group level
+* secrets management setup with AKV
+
 
 ### Create the base Kustomizations for each cluster group
 
