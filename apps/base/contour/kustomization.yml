@@ -11,7 +11,7 @@ secretGenerator:
 - name: contour-packages-values
   namespace: infra-packages
   files:
-  - ../../base/contour/values.yml
+  - values.yml
   type: Opaque
   options:
     annotations:
