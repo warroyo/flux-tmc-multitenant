@@ -8,4 +8,4 @@ resources:
 
 
 components:
-- ../../env/shared-services/external-secrets-crd
+- ../../env/test/external-secrets-crd
