@@ -417,7 +417,11 @@ Here is a breakdown on what gets installed and how. This does not cover the init
 3. `group-apps` points at `/apps/clustergroups/infra-ops`. This installs the metacontroller and the tmc controller from the `apps/base` directory. these are kustomizations that point at other git repos. 
 4. `clustergroup-gitops` bootstraps the cluster specific `kustomization` called `cluster-gitops` 
 5. `cluster-gitops` points at `/clusters/eks.eks-warroyo2.us-west-2.infra-ops` which creates a few more kustomizations `infrastructure`, `apps`, `infra-pre-reqs` and the tenant specific kustomizations. Read more about the standard repo stucture [above](#platform-admin-repo-structure) for details on what each kustomization's purpose is.
-6. 
+6. `infrastructure` sets up external secrets operator and cert-manager.
+7. `apps` - sets up the `clusterSecretStore` pointing at our ss-env AKV using the boostrap credential.
+8. `infra-pre-reqs` - installs any pre-reqs for infra apps. this can be used to install any dependencies since `infrastructure` kustomization depends on it.
+9. tenants specific kustomizations,  this sets up a tenant namespace and service account, as well as the kustomization that points at the tenants bootstrap repo and path to namespaces. This is what configures namespace self service. the kustomization also overrides fields in the `TMCNamespace` objects to ensure they are not creating things outside of their workspace.
+
 
 
 
@@ -438,7 +442,9 @@ Here is a summary of what was created:
 * secrets management setup with AKV
 
 
-### Create the base Kustomizations for each cluster group
+## Add a tenant to a cluster
+
+### Create the base Kustomizations for 
 
 Each cluster group will have an initial kustomization that points to a specific path in the git repo to bootstrap. This will create other Kustomizations that will be specific to each cluster.
 
