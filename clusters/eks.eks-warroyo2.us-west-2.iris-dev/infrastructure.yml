@@ -1,0 +1,30 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: infra-pre-reqs
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  interval: 10m0s
+  path: ./infrastructure/infra-pre-reqs
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: infra-gitops
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: infrastructure
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  dependsOn: 
+    - name: infra-pre-reqs
+  interval: 10m0s
+  path: ./infrastructure/env/dev
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: infra-gitops

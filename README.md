@@ -444,21 +444,32 @@ Here is a summary of what was created:
 
 ## Add a tenant to a cluster
 
-### Create the base Kustomizations for 
+For this step we will walk through adding a tenant to a clustergroup. This will use pre-existing configuration from this repo. In another section we will cover creating a tenant from scratch.
+
+### Setup the bootstrap Kustomizations
 
 Each cluster group will have an initial kustomization that points to a specific path in the git repo to bootstrap. This will create other Kustomizations that will be specific to each cluster.
 
+1. rename the folder `clusters/eks.eks-warroyo2.us-west-2.iris-dev` and `clusters/eks.eks-warroyo2.us-west-2.iris-dev`  to match your TMC cluster names. 
+2. this creates the `kustomizations` for the dev and test cluster groups.  
 
 ```bash
 tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/dev.yaml -s clustergroup
 tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/test.yaml -s clustergroup
-tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/infra-ops.yaml -s clustergroup
 ```
-This will start reconciling all of the components that we have configured to be installed using this git repo structure. Inspect each cluster and make sure Kustomizations are being created and are healthy
 
-```bash
-kubectl get kustomization -A
-```
+
+Here is a breakdown of what is happening after creating these. This breakdown is for the dev clustergroup and iris-dev cluster but this same process happens for any cluster added.
+
+1. The kustomization created above points to this path `clustergroups/dev` in this repo. 
+2. From that folder two more kustomizations are created `group-apps` and `clustergroup-gitops`
+3. `group-apps` points at `/apps/clustergroups/dev`. currently the only thing installed here is the secret imports and exports to make the next step work.
+4. `clustergroup-gitops` bootstraps the cluster specific `kustomization` called `cluster-gitops` 
+5. `cluster-gitops` points at `/clusters/eks.eks-warroyo2.us-west-2.iris-dev` which creates a few more kustomizations `infrastructure`, `apps`, `infra-pre-reqs` and the tenant specific kustomizations. Read more about the standard repo stucture [above](#platform-admin-repo-structure) for details on what each kustomization's purpose is.
+6. `infrastructure` sets up external secrets operator and cert-manager.
+7. `apps` - sets up the `clusterSecretStore` pointing at our dev-env AKV using the boostrap credential. Also installs the contour package.
+8. `infra-pre-reqs` - installs any pre-reqs for infra apps. this can be used to install any dependencies since `infrastructure` kustomization depends on it.
+9. tenants specific kustomizations,  this sets up a tenant namespace and service account, as well as the kustomization that points at the tenants bootstrap repo and path to the cluster name. Permissions for the service account are inherited by the access policy on the workspace. This is what allows the tenant to now create their own `kustomizations` and `gitrepos` to install their apps. 
 
 
 
@@ -467,4 +478,7 @@ kubectl get kustomization -A
 TODO
 
 ## adding a new tenant
+TODO
+
+## Self Service a namespace
 TODO

@@ -1,0 +1,36 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: group-apps
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  interval: 10m0s
+  path: ./apps/clustergroups/dev
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: infra-gitops
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: clustergroup-gitops
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  dependsOn:
+  - name: group-apps
+    namespace: tanzu-continuousdelivery-resources
+  interval: 10m0s
+  path: clustergroups/common/per-cluster
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-name-secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: infra-gitops
