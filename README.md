@@ -46,22 +46,110 @@ One key element to this setup is how every cluster gets bootstrapped with the ri
 Using this structure we can now set a single kustomization at the clustergroup level and have it dynamically create cluster specific `kustomizations` 
 
 
-## Repo structure
+## Platform admin repo structure
 
 The platform admin repo has the following directories
+### clustergroups 
+ this contains directories with Flux config for each group. This is where the base bootstrap config lives. This is used when initially configuring a cluster group's `Kustomization` in TMC. Everything is initiated from here. 
 
-* **clustergroups** - this contains directories with Flux config for each group. This is where the base bootstrap config lives. This is used when initially configuring a cluster group's `Kustomization` in TMC. Everything is initiated from here.
-* **clusters** - this contains directories with Flux config for each cluster. This is what will hold each clusters base configuration that gets boostrapped from the cluster group.
-* **infrastructure** - contains Flux config to install common infra tools used by multiple clusters.
-* **apps** - contains all of the app configs that will be installed per cluster or clustergroup
-* **bootstrap** - bootstrap credential yaml template
-* **tmc** - contains all of the tmc yaml for creating tmc objects
+```
+clustergroups
+│   ├── common
+│   │   └── per-cluster
+│   │       └── base.yaml
+│   └── <clustergroup-name>
+│       ├── base.yml
+│       └── kustomization.yaml
+```
 
+subdirectories:
+* `common` - used for any common config between all cluster groups.
+* `common/per-cluster` -  this holds the `kustomization` that is dynamically created for each cluster that is mentioned in the clustergroup boostrapping section.
+* `clustergroup-name` - folder per cluster group with configs for that clustergroup.
+
+### clusters
+
+This contains directories with Flux config for each cluster. This is what will hold each clusters base configuration that gets boostrapped from the cluster group.
+
+```
+clusters
+│   └── <cluster-name>
+│       ├── apps.yml
+│       ├── infrastructure.yml
+│       └── tenants
+│           └── <tenant-name>.yml
+```
+
+subdirectories/files:
+
+`cluster-name>` -  each cluster will have it's own directory that contains any cluster specific configuration. 
+`apps.yml` -  sets up the cluster specific kustomization pointing to the clusters directory in the `apps` folder. 
+`infrastructure.yml` - sets up the cluster specifc kustomization ponting to the clusters directory `infrastructure` directory. 
+`tenants` -  contains a yml file for each tenant. this yaml file sets up the tenants bootstrap namespace in the cluster as well as the `kustomization` and `gitrepo` that point to the tenants bootstrap git repo. 
+
+### infrastructure
+
+Contains config to install common infra tools per environment. This idea here is that `infrastructure` is used for installing tools that are more infra focused (ex. external secrets operator) per environment and the `apps`  directory is used for more general apps/config per cluster.
+
+```
+infrastructure
+│   ├── base
+│   │   ├── <some-app>
+│   │   │   ├── kustomization.yml
+│   │   │   └── install.yml  
+│   │   └── kustomization.yml
+│   ├── env
+│   │   ├── <environment>
+│   │   │   ├── <some-app>
+│   │   │   │   └── install.yml
+│   │   │   └── kustomization.yml
+
+```
+
+subdirectories/files:
+
+* `base` - contains folders for each infra app to be installed in the cluster.
+* `env` - contains folders for every environment. 
+* `env/<environment>` - holds the configuration for which apps to install in that environment.
+* `env/<environment>/<some-app>` - holds any environment specific overrides for that app.
+
+### apps
+
+Contains all of the app configs that will be installed per cluster or clustergroup. Also allows for environment specific overrides if necessary.
+
+```
+apps
+│   ├── base
+│   │   ├── <some-app>
+│   │   │   ├── install.yml
+│   │   │   └── kustomization.yaml
+│   ├── clustergroups
+│   │   ├── <clustergroup-name>
+│   │   │   └── kustomization.yaml
+│   ├── clusters
+│   │   └── <cluster-name>
+│   │       └── kustomization.yaml
+│   └── env
+│       └── <environment>
+│           └── <some-app>
+│               ├── kustomization.yaml
+│               └── override.yml
+```
+
+
+### bootstrap
+bootstrap credential yaml template
+### tmc
+
+contains all of the tmc yaml for creating tmc objects
+
+## Tenant repo structure
 
 The tenant repo has the following directories
 
-* **clusters** -  this has a directory for each cluster. this will be the reference point for the tenants configured in the platform admin repo. This is used as a bootstrap for the tenant to configure their own kustomizations.
-* **clusters/<clustername>/namespaces** - this nested directory is where tenants place thier namespace yaml for namespace self service.
+### clusters
+this has a directory for each cluster. this will be the reference point for the tenants configured in the platform admin repo. This is used as a bootstrap for the tenant to configure their own kustomizations.
+
 
 
 
@@ -302,16 +390,21 @@ az keyvault secret set --vault-name "ss-env" --name "TMC_HOST" --value "<tmc-hos
 
 By enabling this bootstrap kustomization it will start the process of installing all of the required tools on the infra-ops clusters. 
 
+1. rename the folder `clusters/eks.eks-warroyo2.us-west-2.infra-ops` to match your TMC cluster name. 
+2. enable the kustomization
+
 ```bash
 tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/infra-ops.yaml -s clustergroup
 ```
 
-Here is a breakdown on what gets installed and how.
+Here is a breakdown on what gets installed and how. This does not cover the initial bootstrap process in detail which is covered in detail in the [above section](#Clustergroup bootstrapping)
 
 1. The kustomization created above points to this path `clustergroups/infra-ops` in this repo. 
 2. From that folder two more kustomizations are created `group-apps` and `clustergroup-gitops`
-3. `group-apps` points at `/apps/clustergroups/infra-ops` this installs any apps that are needed at the clustergroup level. In this case it installs the metacontroller, the tmc controller, and the secretexports that allow for cluster based bootstrapping.  
-4. `clustergroup-gitops` depends on `group-apps`
+3. `group-apps` points at `/apps/clustergroups/infra-ops`. This installs the metacontroller and the tmc controller from the `apps/base` directory. these are kustomizations that point at other git repos. 
+4. `clustergroup-gitops` bootstraps the cluster specific `kustomization` called `cluster-gitops` 
+5. `cluster-gitops` points at `/clusters/eks.eks-warroyo2.us-west-2.infra-ops` which creates a few more kustomizations `infrastructure`, `apps`, `infra-pre-reqs` and the tenant specific kustomizations. Read more about the standard repo stucture [above](#Repo structure) for details on what each kustomization's purpose is.
+6. 
 
 
 
