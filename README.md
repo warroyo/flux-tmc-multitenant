@@ -479,6 +479,8 @@ Here is a breakdown of what is happening after creating these. This breakdown is
 9. tenants specific kustomizations,  this sets up a tenant namespace and service account, as well as the kustomization that points at the tenants bootstrap repo and path to the cluster name. Permissions for the service account are inherited by the access policy on the workspace. This is what allows the tenant to now create their own `kustomizations` and `gitrepos` to install their apps. 
 
 
+After the reconcile completes you should see a number of kustomizations in the cluster and everything should be deployed from the tenant bootstrap repo. It will look like this:
+
 
 
 ## Adding a new cluster
