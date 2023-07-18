@@ -47,7 +47,7 @@ metadata:
   namespace: iris-green
 spec:
   interval: 10m0s
-  path: ./clusters/eks.eks-warroyo2.us-west-2.iris-dev/namespaces
+  path: ./clusters/iris-dev/namespaces
   prune: true
   serviceAccountName: tenant-flux-reconciler
   targetNamespace: iris-green
