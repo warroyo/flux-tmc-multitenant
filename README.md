@@ -410,13 +410,13 @@ By enabling this bootstrap kustomization it will start the process of installing
 tanzu tmc continuousdelivery kustomization create -f tmc/continousdelivery/infra-ops.yaml -s clustergroup
 ```
 
-Here is a breakdown on what gets installed and how. This does not cover the initial bootstrap process in detail which is covered in detail in the [above section](#Clustergroup bootstrapping)
+Here is a breakdown on what gets installed and how. This does not cover the initial bootstrap process in detail which is covered in detail in the [above section](#clustergroup-bootstrapping)
 
 1. The kustomization created above points to this path `clustergroups/infra-ops` in this repo. 
 2. From that folder two more kustomizations are created `group-apps` and `clustergroup-gitops`
 3. `group-apps` points at `/apps/clustergroups/infra-ops`. This installs the metacontroller and the tmc controller from the `apps/base` directory. these are kustomizations that point at other git repos. 
 4. `clustergroup-gitops` bootstraps the cluster specific `kustomization` called `cluster-gitops` 
-5. `cluster-gitops` points at `/clusters/eks.eks-warroyo2.us-west-2.infra-ops` which creates a few more kustomizations `infrastructure`, `apps`, `infra-pre-reqs` and the tenant specific kustomizations. Read more about the standard repo stucture [above](#Platform-admin-repo-structure) for details on what each kustomization's purpose is.
+5. `cluster-gitops` points at `/clusters/eks.eks-warroyo2.us-west-2.infra-ops` which creates a few more kustomizations `infrastructure`, `apps`, `infra-pre-reqs` and the tenant specific kustomizations. Read more about the standard repo stucture [above](#platform-admin-repo-structure) for details on what each kustomization's purpose is.
 6. 
 
 
