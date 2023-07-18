@@ -143,6 +143,13 @@ subdirectories/files:
 * `env` - contains folders for every environment. 
 * `env/<environment>/<some-app>` - holds any environment specific overrides for that app.
 
+examples:
+
+some good examples of different ways to override settings can be found in the following directories.
+
+* `apps/clusters/iris-dev` - this shows how to use an env override with the `components` directive for external-secrets. It also shows how to do an override specific to the cluster using the inline patches to add an override values file for contour.
+* 
+
 ### bootstrap
 
 this directory holds the template for the azure-sp credential to setup secrets managment.
