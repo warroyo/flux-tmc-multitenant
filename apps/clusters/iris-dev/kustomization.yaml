@@ -5,7 +5,30 @@ generatorOptions:
 
 resources:
 - ../../base/external-secrets-crd/css.yml
+- ../../base/contour
 
 
 components:
 - ../../env/dev/external-secrets-crd
+
+patches:
+- target:
+    group: packaging.carvel.dev
+    version: v1alpha1
+    kind: PackageInstall
+    name: contour
+  patch: |-
+    - op: add
+      path: /spec/values/1
+      value: {
+          "secretRef": {"name": "contour-packages-values-overrides"}
+            }
+secretGenerator:
+- name: contour-packages-values-overrides
+  namespace: infra-packages
+  files:
+  - values.yml
+  type: Opaque
+  options:
+    annotations:
+      tkg.tanzu.vmware.com/tanzu-package: contour-packages

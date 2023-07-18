@@ -1,0 +1,5 @@
+envoy:
+  hostPorts:
+    enable: true
+    http: 80
+    https: 8443

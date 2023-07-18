@@ -5,6 +5,7 @@ generatorOptions:
 
 resources:
 - ../../base/external-secrets-crd/css.yml
+- ../../base/contour/package-install.yml
 
 
 components:
