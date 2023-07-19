@@ -45,8 +45,11 @@ One key element to this setup is how every cluster gets bootstrapped with the ri
 
 Using this structure we can now set a single kustomization at the clustergroup level and have it dynamically create cluster specific `kustomizations` 
 
-## Architecture
-TODO
+## Multi Tenant Architecture
+
+This architecture is simplified and does not show all of the details but it highlights a few key components which are the tenancy with workspaces, the infra-ops cluster, and the use of different repos and flux.
+
+![](images/2023-07-19-15-03-50.png)
 ## Platform admin repo structure
 
 The platform admin repo has the following directories
