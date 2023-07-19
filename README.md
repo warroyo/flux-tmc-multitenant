@@ -169,11 +169,22 @@ Contains any yaml needed for creating TMC objects with the CLI.
 The tenant repo has the following directories
 
 ### clusters
-this has a directory for each cluster. this will be the reference point for the tenants configured in the platform admin repo. This is used as a bootstrap for the tenant to configure their own kustomizations.
+this has a directory for each cluster. this will be the reference point for the tenants configured in the platform admin repo. This is used as a bootstrap for the tenant to configure their own kustomizations. 
 
 
+```
+clusters
+    └── <cluster-name>
+        ├── kustomization.yml
+        ├── namespaces
+        │   ├── kustomization.yml
+        │   └── namespaces.yml
+```
 
+subdirectories/files:
 
+* `<cluster-name>` - one for each cluster to deploy on
+* `<cluster-name>/namespaces` - hold files(s) that define the `TMCNamespace` objects for namespace self service
 
 ## Initial Setup
 These steps walk through a somewhat opinionated way of organzing things. This is not the only way of doing it and is just an example. Also for any infrastructure created it's advised that this be automated rather than being done by hand, in this example we will use the cli for everything we can. If you already have existing infra, it's not necessary to create new clusters etc. just use those. Also for the purpose of this setup we will assume that we have a platform team and 3 tenants. Those tenants are all within the same product group but are different app teams. our product group name is Iris, so we will have a setup where each team gets a workspace in TMC and k8s clusters will be grouped by environment into cluster groups, each product group in this case will have a cluster(s) per environment. Our three dev teams will be called iris-green, iris-red, iris-blue.
@@ -534,6 +545,21 @@ cp clusters/eks.eks-warroyo2.us-west-2.iris-dev/tenants/iris-blue.yml clusters/e
 
 ### Tenant tasks
 
+The tenant tasks will vary based on what the tenant wants to do but here is the minimum required to get things working.
+
+1. Create folder for clusters in the tenant git repo
+
+```bash
+mkdir -p clusters/iris-dev
+```
+
+2. Create a folder for namespaces per cluster
+
+```bash
+mkdir -p clusters/iris-dev/namespaces
+```
+
+3. create the `kustomization` files in each directory to let flux know which files to reconcile. This will depend on how the tenant wants to structure thier repo. an example can be found [here](https://github.com/warroyo/iris-red-gitops). 
 
 
 
@@ -547,4 +573,9 @@ In the steps above we just copied existing files and did search and replace. How
 * CLI scaffolding generator tooling
 
 ## Self Service a namespace
-TODO
+
+The setup in the repo allows for tenants to self service namespaces. This is done using TMC workspaces, without a TMC workspaces this problem is someone hard to solve and requires other 3rd party tools. Additionally we want self service through gitops, to solve this problem the [TMC controller](https://github.com/warroyo/metacontrollers/tree/main/tmc-controller) was created. So what is enabled is the ability for a tenant to put TMC namespace configs into a directory in thier tenant git repo and it will create them and give them permissions to those namespaces automatically.
+
+1. In the tenant git repo make sure you have the `clusters/<clustername/namespaces` folder created. this is what flux watches.
+2. create a file(s) in the directory that has the namespace config. An example can be found [here](https://github.com/warroyo/iris-green-gitops/blob/main/clusters/iris-dev/namespaces/namespaces.yml)
+3. make sure that the `kustomization` includes that file, example [here](https://github.com/warroyo/iris-green-gitops/blob/main/clusters/iris-dev/namespaces/kustomization.yml). 
