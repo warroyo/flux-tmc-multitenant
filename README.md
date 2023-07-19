@@ -45,7 +45,8 @@ One key element to this setup is how every cluster gets bootstrapped with the ri
 
 Using this structure we can now set a single kustomization at the clustergroup level and have it dynamically create cluster specific `kustomizations` 
 
-
+## Architecture
+TODO
 ## Platform admin repo structure
 
 The platform admin repo has the following directories
@@ -220,7 +221,6 @@ Each team gets their own workspace in which all of their namespaces will be crea
 ```bash
 tanzu tmc workspace create -f tmc/workspaces/iris-green.yaml
 tanzu tmc workspace create -f tmc/workspaces/iris-blue.yaml
-tanzu tmc workspace create -f tmc/workspaces/iris-red.yaml
 ```
 
 
@@ -374,7 +374,6 @@ This role binding is going to bind the tenants service account to the cluster ad
 ```bash
 tanzu tmc iam update-policy -s workspace -n iris-blue -f tmc/iam/sa-rb-workspace-blue.yaml
 tanzu tmc iam update-policy -s workspace -n iris-green -f tmc/iam/sa-rb-workspace-green.yaml
-tanzu tmc iam update-policy -s workspace -n iris-red -f tmc/iam/sa-rb-workspace-red.yaml
 ```
 
 
@@ -427,7 +426,7 @@ Here is a breakdown on what gets installed and how. This does not cover the init
 6. `infrastructure` sets up external secrets operator and cert-manager.
 7. `apps` - sets up the `clusterSecretStore` pointing at our ss-env AKV using the boostrap credential.
 8. `infra-pre-reqs` - installs any pre-reqs for infra apps. this can be used to install any dependencies since `infrastructure` kustomization depends on it.
-9. tenants specific kustomizations,  this sets up a tenant namespace and service account, as well as the kustomization that points at the tenants bootstrap repo and path to namespaces. This is what configures namespace self service. the kustomization also overrides fields in the `TMCNamespace` objects to ensure they are not creating things outside of their workspace.
+9. tenants specific kustomizations,  this sets up a tenant namespace and service account, as well as the kustomization that points at the tenants bootstrap repo and path to namespaces. It also creates an initial `TMCNamespace` object for the bootstrap ns in the downstream cluster(s). This is what configures namespace self service. the kustomization also overrides fields in the `TMCNamespace` objects to ensure they are not creating things outside of their workspace.
 
 
 
@@ -476,7 +475,7 @@ Here is a breakdown of what is happening after creating these. This breakdown is
 6. `infrastructure` sets up external secrets operator and cert-manager.
 7. `apps` - sets up the `clusterSecretStore` pointing at our dev-env AKV using the boostrap credential. Also installs the contour package.
 8. `infra-pre-reqs` - installs any pre-reqs for infra apps. this can be used to install any dependencies since `infrastructure` kustomization depends on it.
-9. tenants specific kustomizations,  this sets up a tenant namespace and service account, as well as the kustomization that points at the tenants bootstrap repo and path to the cluster name. Permissions for the service account are inherited by the access policy on the workspace. This is what allows the tenant to now create their own `kustomizations` and `gitrepos` to install their apps. 
+9. tenants specific kustomizations, this sets up a service account in the tenant bootstrap ns that was created through the ns automation in the infra-ops cluster. As well as the kustomization that points at the tenants bootstrap repo and path to the cluster name. Permissions for the service account are inherited by the access policy on the workspace. This is what allows the tenant to now create their own `kustomizations` and `gitrepos` to install their apps. 
 
 
 After the reconcile completes you should see a number of kustomizations in the cluster and everything should be deployed from the tenant bootstrap repo. It will look like this:
@@ -486,8 +485,66 @@ After the reconcile completes you should see a number of kustomizations in the c
 ## Adding a new cluster
 TODO
 
-## adding a new tenant
-TODO
+## Adding a new tenant
+
+Adding a new Tenant has a few steps that could be automated. Some ideas around automating these are listed below. These steps should be completed any time a new team is wanting to be onboarded. These steps are outlined with commands referencing this repo's setup but these could be adpated to be done generically.
+
+using `iris-red` as the new tenant.
+
+### Platform admin Tasks
+
+1. create a new workspace in TMC for the team. 
+
+```bash
+tanzu tmc workspace create -f tmc/workspaces/iris-red.yaml
+```
+
+2. bind the service account to the IAM role using a tmc access policy. this gives the service account in the bootstrap namespace permissions to any namespace in the workspace. 
+
+```bash
+tanzu tmc iam update-policy -s workspace -n iris-red -f tmc/iam/sa-rb-workspace-red.yaml
+```
+
+3. create a tenant file in the infra-ops cluster folder. Replace the tenant name in all locations in the file.
+
+```
+cp clusters/eks.eks-warroyo2.us-west-2.infra-ops/tenants/iris-blue.yml clusters/eks.eks-warroyo2.us-west-2.infra-ops/tenants/iris-red.yml 
+
+##replace the tenant name in the file
+```
+
+4. create a tenant gitops repo, this could also be handled by the tenant initially and passed to the admins. In this case our git repo name is `iris-red-gitops`
+
+
+5. create a tenant file in the clusters that you would like that tenant to exist in. for this example we will assume dev only. This file contains the `gitrepo` setup for the tenant so make sure it matches the git repo from step 4.
+
+```
+cp clusters/eks.eks-warroyo2.us-west-2.iris-dev/tenants/iris-blue.yml clusters/eks.eks-warroyo2.us-west-2.iris-dev/tenants/iris-red.yml 
+
+##replace the tenant name in the file
+```
+
+6. commit these files into the git repo and wait for flux to reconcile. here is what is created
+   1. tenant workspace
+   2. tenant git repo
+   3. tenant ns in the cluster(s)
+   4. IAM rules for tenant
+   5. ability to do NS self service
+   6. intial flux config so they can start installing apps.
+
+### Tenant tasks
+
+
+
+
+### Automation ideas
+
+In the steps above we just copied existing files and did search and replace. However in an automation scenario what you would most liklely do is template out the files and use variables to generate them. 
+
+* TAP acelerators for tenant repos
+* ADO pipelines + YTT templated files
+* Simple bash scripts to create the files. 
+* CLI scaffolding generator tooling
 
 ## Self Service a namespace
 TODO

@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-flux-reconciler
+  namespace: iris-red
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: iris-red
+  namespace: iris-red
+spec:
+  interval: 1m0s
+  ref:
+    branch: main
+  url: https://github.com/warroyo/iris-red-gitops
+  ignore: |
+    #ignore the namespaces for this cluster which are handles by a different kustomization
+    /clusters/*/namespaces
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: iris-red
+  namespace: iris-red
+spec:
+  interval: 10m0s
+  path: ./clusters/iris-dev
+  prune: true
+  serviceAccountName: tenant-flux-reconciler
+  sourceRef:
+    kind: GitRepository
+    name: iris-red
