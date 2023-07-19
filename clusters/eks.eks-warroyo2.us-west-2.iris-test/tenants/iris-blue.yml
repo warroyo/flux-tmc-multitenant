@@ -31,7 +31,6 @@ spec:
   path: ./clusters/iris-test
   prune: true
   serviceAccountName: tenant-flux-reconciler
-  targetNamespace: iris-blue
   sourceRef:
     kind: GitRepository
     name: iris-blue
