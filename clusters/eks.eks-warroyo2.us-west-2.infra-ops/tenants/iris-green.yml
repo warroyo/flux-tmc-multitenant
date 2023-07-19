@@ -79,6 +79,7 @@ apiVersion: tmc.tanzufield.vmware.com/v1
 kind: TMCNamespace
 metadata:
   name: iris-green
+  namespace: iris-green
   labels:
     version: v1
 spec:
