@@ -30,7 +30,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: iris-blue-dev
+  name: iris-blue
   namespace: iris-blue
 spec:
   interval: 10m0s
