@@ -93,3 +93,56 @@ spec:
       team: iris-green
   spec:
     workspaceName: iris-green    
+
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: iris-green-test
+  namespace: iris-green
+spec:
+  interval: 10m0s
+  path: ./clusters/iris-dev/namespaces
+  prune: true
+  serviceAccountName: tenant-flux-reconciler
+  targetNamespace: iris-green
+  sourceRef:
+    kind: GitRepository
+    name: iris-green
+  patches:
+    - patch: |-
+        apiVersion: tmc.tanzufield.vmware.com/v1
+        kind: TMCNamespace
+        metadata:
+          name: not used
+        spec:
+          fullName:
+            clusterName: eks.eks-warroyo2.us-west-2.iris-test
+            managementClusterName: eks
+            provisionerName: eks
+          spec:
+            workspaceName: iris-green
+                  
+      target:
+        kind: TMCNamespace
+
+---
+apiVersion: tmc.tanzufield.vmware.com/v1
+kind: TMCNamespace
+metadata:
+  name: iris-green
+  namespace: iris-green
+  labels:
+    version: v1
+spec:
+  fullName:
+    name: iris-green
+    clusterName: eks.eks-warroyo2.us-west-2.iris-test
+    managementClusterName: eks
+    provisionerName: eks
+  meta:
+    labels:
+      team: iris-green
+  spec:
+    workspaceName: iris-green    
