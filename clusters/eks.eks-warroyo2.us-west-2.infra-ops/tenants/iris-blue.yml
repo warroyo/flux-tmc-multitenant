@@ -130,7 +130,7 @@ spec:
 apiVersion: tmc.tanzufield.vmware.com/v1
 kind: TMCNamespace
 metadata:
-  name: iris-blue
+  name: iris-blue-test
   namespace: iris-blue
   labels:
     version: v1
