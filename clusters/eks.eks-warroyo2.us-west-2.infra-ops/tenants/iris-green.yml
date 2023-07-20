@@ -103,7 +103,7 @@ metadata:
   namespace: iris-green
 spec:
   interval: 10m0s
-  path: ./clusters/iris-dev/namespaces
+  path: ./clusters/iris-test/namespaces
   prune: true
   serviceAccountName: tenant-flux-reconciler
   targetNamespace: iris-green
