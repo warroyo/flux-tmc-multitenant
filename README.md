@@ -2,6 +2,15 @@
 
 This repo serves as a starting point for managing multi-tenant clusters using Flux and TMC.In this case what we mean by multi-tenant is that different teams can share a K8s cluster and have access to self service namespaces in that cluster but not be able to touch other teams namespaces in the same cluster. This does not get into network policy for locking down namepsace networking, that is out of scope.  
 
+## Associated repos
+
+Here are the repos for the tenants that are mentioned throughout this doc.
+
+[iris-green bootstrap repo](https://github.com/warroyo/iris-green-gitops)
+[iris-green app repo](https://github.com/warroyo/iris-green-apps)
+
+[iris-blue bootstrap repo](https://github.com/warroyo/iris-blue-gitops)
+[iris-red bootstrap repo](https://github.com/warroyo/iris-red-gitops)
 
 
 ## Roles
@@ -494,6 +503,24 @@ Here is a breakdown of what is happening after creating these. This breakdown is
 
 After the reconcile completes you should see a number of kustomizations in the cluster and everything should be deployed from the tenant bootstrap repo. It will look like this:
 
+
+```
+NAMESPACE↑                                   NAME                            READY          STATUS                                                                    AGE              │
+│ iris-blue                                    iris-blue                       True           Applied revision: main/7f1800ddfe91e8546e8ee895cb463cea76ca799f           28h              │
+│ iris-blue                                    iris-blue-apps                  True           Applied revision: main/0a0022ebc2735d8defaa373d511499ac64949474           12m              │
+│ iris-green                                   iris-green                      True           Applied revision: main/2402dfc51ea88adab1535306741925bc6ecaeb4f           28h              │
+│ iris-green                                   iris-green-apps                 True           Applied revision: main/b1d1541217c8565f37e8659391c3f152227692ed           25m              │
+│ iris-red                                     iris-red                        True           Applied revision: main/a79bd9de6fbd1e3fd6f41b864873e00aa63f03ee           25h              │
+│ iris-red                                     iris-red-apps                   True           Applied revision: main/3215ab378aed49d155427c1efe1c70b62bdd55ea           16s              │
+│ tanzu-continuousdelivery-resources           apps                            True           Applied revision: main/177933088ded390537795fc8b1bb94a230af1239           46h              │
+│ tanzu-continuousdelivery-resources           cg-base                         True           Applied revision: main/177933088ded390537795fc8b1bb94a230af1239           2d22h            │
+│ tanzu-continuousdelivery-resources           cluster-gitops                  True           Applied revision: main/177933088ded390537795fc8b1bb94a230af1239           46h              │
+│ tanzu-continuousdelivery-resources           clustergroup-gitops             True           Applied revision: main/177933088ded390537795fc8b1bb94a230af1239           46h              │
+│ tanzu-continuousdelivery-resources           external-secrets-crds           True           Applied revision: main/59bf53e7a3cdd38dd0d742f0950b731d89cc50e6           46h              │
+│ tanzu-continuousdelivery-resources           group-apps                      True           Applied revision: main/177933088ded390537795fc8b1bb94a230af1239           46h              │
+│ tanzu-continuousdelivery-resources           infra-pre-reqs                  True           Applied revision: main/177933088ded390537795fc8b1bb94a230af1239           46h              │
+│ tanzu-continuousdelivery-resources           infrastructure                  True           Applied revision: main/177933088ded390537795fc8b1bb94a230af1239           46h 
+```
 
 
 ## Adding a new cluster
