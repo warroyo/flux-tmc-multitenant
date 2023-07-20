@@ -10,7 +10,10 @@ Here are the repos for the tenants that are mentioned throughout this doc.
 [iris-green app repo](https://github.com/warroyo/iris-green-apps)
 
 [iris-blue bootstrap repo](https://github.com/warroyo/iris-blue-gitops)
+[iris-blue app repo](https://github.com/warroyo/iris-blue-apps)
+
 [iris-red bootstrap repo](https://github.com/warroyo/iris-red-gitops)
+[iris-red app repo](https://github.com/warroyo/iris-red-apps)
 
 
 ## Roles
