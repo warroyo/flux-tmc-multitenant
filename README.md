@@ -318,7 +318,7 @@ tanzu tmc policy create -f tmc/policy/enforce-es-naming-test.yaml -s clustergrou
 
 As a tenant:
 
-1. create an external secret object that references the secret you want in your namespace. An example of this can be found [here](), notice the naming convention being used `iris-green-example-secret`
+1. create an external secret object that references the secret you want in your namespace. An example of this can be found [here](https://github.com/warroyo/iris-green-apps/blob/main/config/k8s/base/secret.yml), notice the naming convention being used `iris-green-example-secret`
 
 **Option 2** 
 
