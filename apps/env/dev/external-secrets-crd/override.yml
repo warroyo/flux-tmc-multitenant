@@ -9,4 +9,4 @@ spec:
       # azure tenant ID, see: https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant
       tenantId: "b39138ca-3cee-4b4a-a4d6-cd83d9dd62f0"
       # URL of your vault instance, see: https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates
-      vaultUrl: "https://dev-env.vault.azure.net"
+      vaultUrl: "https://dev-environ.vault.azure.net"
