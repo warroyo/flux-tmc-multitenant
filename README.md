@@ -1,6 +1,6 @@
 # Flux TMC Multi-tenant
 
-This repo serves as a starting point for managing multi-tenant clusters using Flux and TMC.In this case what we mean by multi-tenant is that different teams can share a K8s cluster and have access to self service namespaces in that cluster but not be able to touch other teams namespaces in the same cluster. This does not get into network policy for locking down namepsace networking, that is out of scope.  
+This repo serves as a starting point for managing multi-tenant clusters using Flux and TMC.In this case what we mean by multi-tenant is that different teams can share a K8s cluster and have access to self service namespaces in that cluster but not be able to interfere with other teams namespaces in the same cluster. This does not get into network policy for locking down namespace networking, that is out of scope.  The overall goal of this repo is to give an base template an example of a real world flux multiteant use case with TMC. The structure of this repo accounts for multiple environments and clusters and is meant to be able to represent an enterprise environment.
 
 ## Associated repos
 
