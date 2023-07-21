@@ -199,7 +199,7 @@ clusters
 subdirectories/files:
 
 * `<cluster-name>` - one for each cluster to deploy on
-* `<cluster-name>/namespaces` - hold files(s) that define the `TMCNamespace` objects for namespace self service
+* `<cluster-name>/namespaces` - hold files(s) that define the `TMCNamespace` objects for namespace self service. also contains the `kustomization.yml` that adds the unique suffic to the `TMCNamespace` objects
 
 ## Initial Setup
 These steps walk through a somewhat opinionated way of organzing things. This is not the only way of doing it and is just an example. Also for any infrastructure created it's advised that this be automated rather than being done by hand, in this example we will use the cli for everything we can. If you already have existing infra, it's not necessary to create new clusters etc. just use those. Also for the purpose of this setup we will assume that we have a platform team and 3 tenants. Those tenants are all within the same product group but are different app teams. our product group name is Iris, so we will have a setup where each team gets a workspace in TMC and k8s clusters will be grouped by environment into cluster groups, each product group in this case will have a cluster(s) per environment. Our three dev teams will be called iris-green, iris-red, iris-blue.
@@ -631,4 +631,4 @@ The setup in the repo allows for tenants to self service namespaces. This is don
 
 1. In the tenant git repo make sure you have the `clusters/<clustername/namespaces` folder created. this is what flux watches.
 2. create a file(s) in the directory that has the namespace config. An example can be found [here](https://github.com/warroyo/iris-green-gitops/blob/main/clusters/iris-dev/namespaces/namespaces.yml)
-3. make sure that the `kustomization` includes that file, example [here](https://github.com/warroyo/iris-green-gitops/blob/main/clusters/iris-dev/namespaces/kustomization.yml). 
+3. make sure that the `kustomization` includes that file, example [here](https://github.com/warroyo/iris-green-gitops/blob/main/clusters/iris-dev/namespaces/kustomization.yml). Make sure that the `kustomization` also includes a unique `nameSuffix` this will make sure that the `TMCNamespace` objects do not have collisions in the infra-ops cluster.
