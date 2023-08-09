@@ -430,6 +430,8 @@ The infra-ops cluster needs to be able to communicate with the TMC API. Create a
 1. create a TMC API token
 2. create the AKV entries. 
 
+for the `tmc-host` value enter this as the TMC hostname without `https://`. it should juts be the fqdn.
+
 ```bash
 az keyvault secret set --vault-name "ss-env" --name "tmc-csp-token" --value "<tmc-api-token>"
 az keyvault secret set --vault-name "ss-env" --name "tmc-host" --value "<tmc-hostname>"
