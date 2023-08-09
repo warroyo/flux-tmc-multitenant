@@ -431,8 +431,8 @@ The infra-ops cluster needs to be able to communicate with the TMC API. Create a
 2. create the AKV entries. 
 
 ```bash
-az keyvault secret set --vault-name "ss-env" --name "CSP_TOKEN" --value "<tmc-api-token>"
-az keyvault secret set --vault-name "ss-env" --name "TMC_HOST" --value "<tmc-hostname>"
+az keyvault secret set --vault-name "ss-env" --name "tmc-csp-token" --value "<tmc-api-token>"
+az keyvault secret set --vault-name "ss-env" --name "tmc-host" --value "<tmc-hostname>"
 ```
 
 #### Setup the bootstrap Kustomization
