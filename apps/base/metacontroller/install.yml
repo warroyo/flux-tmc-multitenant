@@ -28,6 +28,7 @@ spec:
     namespace: tanzu-continuousdelivery-resources
     name: metacontroller
 ---
+apiVersion: v1
 kind: Namespace
 metadata:
   name: metacontroller
