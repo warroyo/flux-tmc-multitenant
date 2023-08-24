@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - infrastructure.yml
   - apps.yml
+  - tenants.yml
