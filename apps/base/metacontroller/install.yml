@@ -27,3 +27,7 @@ spec:
     kind: GitRepository
     namespace: tanzu-continuousdelivery-resources
     name: metacontroller
+---
+kind: Namespace
+metadata:
+  name: metacontroller
