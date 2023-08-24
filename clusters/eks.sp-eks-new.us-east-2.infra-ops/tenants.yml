@@ -1,0 +1,16 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: tenants
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  dependsOn:
+  - name: apps
+  interval: 10m0s
+  path: ./clusters/eks.sp-eks-new.us-east-2.infra-ops/tenants
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: infra-gitops
