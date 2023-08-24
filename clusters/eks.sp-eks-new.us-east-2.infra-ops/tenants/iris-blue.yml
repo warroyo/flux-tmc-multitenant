@@ -65,7 +65,8 @@ spec:
           name: not used
         spec:
           fullName:
-            clusterName: eks.eks-warroyo2.us-west-2.iris-dev
+            clusterName: eks.sp-eks-new.us-east-2.iris-dev
+
             managementClusterName: eks
             provisionerName: eks
           spec:
@@ -85,7 +86,8 @@ metadata:
 spec:
   fullName:
     name: iris-blue
-    clusterName: eks.eks-warroyo2.us-west-2.iris-dev
+    clusterName: eks.sp-eks-new.us-east-2.iris-dev
+
     managementClusterName: eks
     provisionerName: eks
   meta:
