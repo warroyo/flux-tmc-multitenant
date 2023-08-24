@@ -5,6 +5,8 @@ generatorOptions:
 
 resources:
 - ../../base/external-secrets-crd/css.yml
+- ../../base/metacontroller/install.yml
+- ../../base/tmc-controller/install.yml
 
 
 components:
