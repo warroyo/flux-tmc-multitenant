@@ -120,9 +120,9 @@ spec:
           name: not used
         spec:
           fullName:
-            clusterName: eks.eks-warroyo2.us-west-2.iris-test
-            managementClusterName: eks
-            provisionerName: eks
+            clusterName: aks.c149b7a9.my-resource-grp-sp.iris-test
+            managementClusterName: aks
+            provisionerName: aks
           spec:
             workspaceName: iris-green
                   
@@ -140,9 +140,9 @@ metadata:
 spec:
   fullName:
     name: iris-green
-    clusterName: eks.eks-warroyo2.us-west-2.iris-test
-    managementClusterName: eks
-    provisionerName: eks
+    clusterName: aks.c149b7a9.my-resource-grp-sp.iris-test
+    managementClusterName: aks
+    provisionerName: aks
   meta:
     labels:
       team: iris-green
