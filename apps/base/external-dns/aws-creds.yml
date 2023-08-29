@@ -18,7 +18,7 @@ spec:
   # name of the SECRET in the Azure KV (no prefix is by default a SECRET)
   - secretKey: aws_access_key_id
     remoteRef:
-      key: tmc-csp-token
-  - secretKey: external-dns-access-key
+      key: external-dns-access-key
+  - secretKey: aws_secret_access_key
     remoteRef:
       key: external-dns-secret-key
