@@ -1,0 +1,24 @@
+---
+apiVersion: external-secrets.io/v1alpha1
+kind: ExternalSecret
+metadata:
+  name: external-dns-creds
+  namespace: metacontroller
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: cluster-wide-store
+
+  target:
+    name: route53-credentials
+    creationPolicy: Owner
+
+  data:
+  # name of the SECRET in the Azure KV (no prefix is by default a SECRET)
+  - secretKey: aws_access_key_id
+    remoteRef:
+      key: tmc-csp-token
+  - secretKey: external-dns-access-key
+    remoteRef:
+      key: external-dns-secret-key

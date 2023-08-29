@@ -347,6 +347,84 @@ As a tenant:
 Since we are using gitops, this will be installed automatically though this repo. there is nothing else to do here. In the following steps the `kustomizations` will be created that deploy this.
 
 
+### Setup Automated DNS
+
+If you would like automated DNS through [external-dns](https://kubernetes-sigs.github.io/external-dns) follow these steps. if you would like to manually setup DNS you can remove the external dns setup from  the cluster kustomizations in `apps/clusters/<clustername>/kustomization.yaml`.
+
+External DNS supports many providers, for this example we will use AWS route 53. You can change this to meet your needs based on the external dns documentation.
+
+#### Create a hosted zone or use existing
+
+we need a zone to use to create dns entries. In this example we will create a single hosted zone and then have external-dns manage creating subdomains per cluster. If you already have an existing zone Skip ahead. 
+
+```bash
+aws route53 create-hosted-zone --name <yourdomain> --caller-reference <randomstring>
+
+#ex.  aws route53 create-hosted-zone --name fluxtmc.aws.warroyo.com --caller-reference 123y3hjdhajkdh
+```
+
+be sure to add your upstream ns records if needed so that the domain resolves.
+
+
+#### Setup the IAM Policy and credentials
+
+Just like with secrets management this could be skipped and instead you can use an identity on the pods. For simplicity in this example we will use the IAM user approach instead of a pod identity.
+
+
+```bash
+aws iam create-policy --policy-name tmc-flux-external-dns --policy-document \
+'{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ChangeResourceRecordSets"
+      ],
+      "Resource": [
+        "arn:aws:route53:::hostedzone/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ListHostedZones",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}'
+```
+
+create a IAM user and add the policy
+
+```bash
+aws iam create-user --user-name external-dns-fluxtmc
+aws iam create-access-key --user-name external-dns-fluxtmc
+aws iam attach-user-policy --policy-arn <arn-from-above> --user-name external-dns-fluxtmc
+```
+
+#### Add the AWS credentials to AKV
+
+Since we are using AKV for secrets management we will add the created credentials to the key vault for the environments. In this case the user is the same for both environments but if it's not be sure to repeat these steps for each environment.
+
+```bash
+#dev env
+az keyvault secret set --vault-name "dev-env" --name "external-dns-access-key" --value "<access-key>"
+az keyvault secret set --vault-name "dev-env" --name "external-dns-secret-key" --value "<secret-key>"
+
+# test env
+az keyvault secret set --vault-name "test-env" --name "external-dns-access-key" --value "<access-key>"
+az keyvault secret set --vault-name "test-env" --name "external-dns-secret-key" --value "<secret-key>"
+```
+
+#### Deploy the operator
+
+This is all done through gitops, so at this point everything is prepared and will be handled by flux.
+
 ### Enable CD components on the cluster groups for TMC
 
 This will enable the flux kustomize and helm controllers in all of the clusters that are added to the cluster groups.

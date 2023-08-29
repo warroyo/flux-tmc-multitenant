@@ -1,0 +1,31 @@
+# Namespace in which to deploy ExternalDNS pods.
+namespace: tanzu-system-service-discovery
+createNamespace: true
+# Deployment-related configuration.
+deployment:
+  args:
+    - --source=service
+    - --source=ingress
+    - --source=contour-httpproxy # Provide this to enable Contour HTTPProxy support. Must have Contour installed or ExternalDNS will fail.
+    - --domain-filter=fluxtmc.aws.warroyo.com # Makes ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones.
+    - --policy=upsert-only # Prevents ExternalDNS from deleting any records, omit to enable full synchronization.
+    - --registry=txt
+    - --txt-owner-id=default
+    - --txt-prefix=txt # Disambiguates TXT records from CNAME records.
+    - --provider=aws
+    - --aws-zone-type=public # Looks only at public hosted zones. Valid values are public, private, or no value for both.
+    - --aws-prefer-cname
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: route53-credentials
+          key: aws_access_key_id
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: route53-credentials
+          key: aws_secret_access_key
+  securityContext: {}
+  volumeMounts: []
+  volumes: []
