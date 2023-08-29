@@ -1,6 +1,6 @@
 # Namespace in which to deploy ExternalDNS pods.
-namespace: tanzu-system-service-discovery
-createNamespace: true
+namespace: external-dns
+createNamespace: false
 # Deployment-related configuration.
 deployment:
   args:
