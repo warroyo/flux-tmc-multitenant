@@ -3,7 +3,7 @@ apiVersion: external-secrets.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: external-dns-creds
-  namespace: metacontroller
+  namespace: external-dns
 spec:
   refreshInterval: 1h
   secretStoreRef:
