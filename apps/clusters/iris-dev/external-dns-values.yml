@@ -1,3 +1,13 @@
 deployment:
   args:
-    - --txt-owner-id=iris-dev-7869
+    - --source=service
+    - --source=ingress
+    - --source=contour-httpproxy # Provide this to enable Contour HTTPProxy support. Must have Contour installed or ExternalDNS will fail.
+    - --domain-filter=fluxtmc.aws.warroyo.com # Makes ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones.
+    - --policy=upsert-only # Prevents ExternalDNS from deleting any records, omit to enable full synchronization.
+    - --registry=txt
+    - --txt-owner-id=iris-dev-8923y7489
+    - --txt-prefix=txt # Disambiguates TXT records from CNAME records.
+    - --provider=aws
+    - --aws-zone-type=public # Looks only at public hosted zones. Valid values are public, private, or no value for both.
+    - --aws-prefer-cname
