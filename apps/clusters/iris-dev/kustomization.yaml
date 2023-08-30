@@ -17,17 +17,6 @@ patches:
     group: packaging.carvel.dev
     version: v1alpha1
     kind: PackageInstall
-    name: contour
-  patch: |-
-    - op: add
-      path: /spec/values/1
-      value: {
-          "secretRef": {"name": "contour-packages-values-overrides"}
-            }
-- target:
-    group: packaging.carvel.dev
-    version: v1alpha1
-    kind: PackageInstall
     name: external-dns
   patch: |-
     - op: add
@@ -36,14 +25,6 @@ patches:
           "secretRef": {"name": "external-dns-packages-values-overrides"}
             }
 secretGenerator:
-- name: contour-packages-values-overrides
-  namespace: infra-packages
-  files:
-  - contour-values.yml
-  type: Opaque
-  options:
-    annotations:
-      tkg.tanzu.vmware.com/tanzu-package: contour-packages
 - name: external-dns-packages-values-overrides
   namespace: infra-packages
   files:
