@@ -1,21 +1,16 @@
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tenant-flux-reconciler
-  namespace: iris-blue
-
----
+{{- range .Values.tenants }}
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
-  name: iris-blue
-  namespace: iris-blue
+  name: {{ .name }}
+  namespace: {{ include "tenant-generator.namespace" . }}
+  labels:
+    {{- include "tenant-generator.labels" $ | nindent 4 }}
 spec:
   interval: 1m0s
   ref:
     branch: main
-  url: https://github.com/warroyo/iris-blue-gitops
+  url: {{ .git_repo_url }}
   ignore: |
     #ignore the namespaces for this cluster which are handles by a different kustomization
     /clusters/*/namespaces
@@ -24,13 +19,16 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: iris-blue
-  namespace: iris-blue
+  name: {{ .name }}
+  namespace: {{ include "tenant-generator.namespace" . }}
+  labels:
+    {{- include "tenant-generator.labels" $ | nindent 4 }}
 spec:
   interval: 10m0s
-  path: ./clusters/iris-dev
+  path: ./clusters/{{ .cluster_name }}
   prune: true
   serviceAccountName: tenant-flux-reconciler
   sourceRef:
     kind: GitRepository
-    name: iris-blue
+    name: {{ .name }}
+{{- end }}

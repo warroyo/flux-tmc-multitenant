@@ -1,0 +1,23 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: tenant-generator
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  # Override Release name to avoid the pattern Namespace-Release
+  # Ref: https://fluxcd.io/docs/components/helm/api/#helm.toolkit.fluxcd.io/v2beta1.HelmRelease
+  releaseName: tenant-generator
+  targetNamespace: tenant-generator
+  interval: 5m
+  chart:
+    spec:
+      chart: tenant-generator
+      version: 1.0.0
+      sourceRef:
+        kind: GitRepository
+        name: infra-gitops
+        namespace: tanzu-continuousdelivery-resources
+  values:
+    tenants: []
+  install:
+    createNamespace: true

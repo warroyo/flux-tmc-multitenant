@@ -1,0 +1,4 @@
+This Helm chart creates the following for each tenant
+* service account
+* git repo
+* kustomization

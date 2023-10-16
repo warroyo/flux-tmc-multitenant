@@ -8,9 +8,22 @@ spec:
   dependsOn:
   - name: apps
   interval: 10m0s
-  path: ./clusters/eks.sp-eks-new.us-east-2.iris-dev/tenants
+  path: ./apps/base/tenant-generator/
   prune: true
   sourceRef:
     kind: GitRepository
     namespace: tanzu-continuousdelivery-resources
     name: infra-gitops
+  patches:
+    - patch: |
+        - op: add
+          path: /spec/values
+          value:
+            tenants:
+              - name: iris-blue   
+                git_repo_url: https://github.com/warroyo/iris-blue-gitops
+                cluster_name: $cluster_name   
+      target:
+        kind: HelmRelease
+        name: tenant-generator
+        namespace: tanzu-continuousdelivery-resources

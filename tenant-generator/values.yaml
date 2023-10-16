@@ -1,0 +1,9 @@
+# Default values for tenant-generator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+tenants:
+  - name: changeme
+    namespace: "testing"
+    cluster_name: changeme
+    git_repo_url: changeme
