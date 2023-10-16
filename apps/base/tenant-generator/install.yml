@@ -18,5 +18,3 @@ spec:
         namespace: tanzu-continuousdelivery-resources
   values:
     tenants: []
-  install:
-    createNamespace: true
