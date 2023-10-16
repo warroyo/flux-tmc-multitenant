@@ -7,7 +7,6 @@ spec:
   # Override Release name to avoid the pattern Namespace-Release
   # Ref: https://fluxcd.io/docs/components/helm/api/#helm.toolkit.fluxcd.io/v2beta1.HelmRelease
   releaseName: tenant-generator
-  targetNamespace: tenant-generator
   interval: 5m
   chart:
     spec:
