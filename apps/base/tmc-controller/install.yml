@@ -23,7 +23,7 @@ spec:
     namespace: tanzu-continuousdelivery-resources
     name: metacontrollers
 ---
-apiVersion: external-secrets.io/v1alpha1
+apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: tmcinfo
