@@ -25,7 +25,7 @@ metadata:
     {{- include "tenant-generator.labels" $ | nindent 4 }}
 spec:
   interval: 10m0s
-  path: ./clusters/{{ .cluster_name }}
+  path: ./clusters/{{ $.Values.cluster_name }}
   prune: true
   serviceAccountName: tenant-flux-reconciler
   sourceRef:

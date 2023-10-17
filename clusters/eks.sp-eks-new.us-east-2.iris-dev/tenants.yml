@@ -19,11 +19,15 @@ spec:
         - op: add
           path: /spec/values
           value:
+            cluster_name: ${cluster_name} 
             tenants:
               - name: iris-blue   
                 git_repo_url: https://github.com/warroyo/iris-blue-gitops
-                cluster_name: ${cluster_name} 
-            
+              - name: iris-green   
+                git_repo_url: https://github.com/warroyo/iris-green-gitops
+              - name: iris-red   
+                git_repo_url: https://github.com/warroyo/iris-red-gitops
+                
       target:
         kind: HelmRelease
         name: tenant-generator

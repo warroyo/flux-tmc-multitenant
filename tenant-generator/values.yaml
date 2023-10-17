@@ -2,8 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+cluster_name: changeme
 tenants:
   - name: changeme2
     namespace: ""
-    cluster_name: changeme
     git_repo_url: https://changeme
