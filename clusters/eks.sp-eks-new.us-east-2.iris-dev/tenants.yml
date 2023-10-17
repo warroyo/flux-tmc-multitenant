@@ -19,17 +19,19 @@ spec:
         - op: add
           path: /spec/values
           value:
-            cluster_name: ${cluster_name} 
-            tenants:
-              - name: iris-blue
-                namespace: iris-blue
-                git_repo_url: https://github.com/warroyo/iris-blue-gitops
-              - name: iris-green
-                namespace: iris-green   
-                git_repo_url: https://github.com/warroyo/iris-green-gitops
-              - name: iris-red
-                namespace: iris-red   
-                git_repo_url: https://github.com/warroyo/iris-red-gitops
+            cluster_type: workload
+            worload_cluster:
+              cluster_name: ${cluster_name} 
+              tenants:
+                - name: iris-blue
+                  namespace: iris-blue
+                  git_repo_url: https://github.com/warroyo/iris-blue-gitops
+                - name: iris-green
+                  namespace: iris-green   
+                  git_repo_url: https://github.com/warroyo/iris-green-gitops
+                - name: iris-red
+                  namespace: iris-red   
+                  git_repo_url: https://github.com/warroyo/iris-red-gitops
                 
       target:
         kind: HelmRelease
