@@ -13,6 +13,9 @@ This release contains updates to the tenant management as well as a few minor fi
   * see docs [here](https://github.com/warroyo/flux-tmc-multitenant/tree/main/tenant-generator) 
 * refactored tenants to use new helm chart
 * updated documentation for tenants to reflect new helm chart
+* moved apps kustomization to use the existing `cluster_name` variable. related commits:
+  * https://github.com/warroyo/flux-tmc-multitenant/commit/158db32868af35c2a81d6cb8dce3e09002595093
+* Switched to using full cluster names rather than a mix. this is more consistent and allows for better re-usability
 
 # 1.0.0
 

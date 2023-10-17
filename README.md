@@ -96,8 +96,7 @@ clusters
 │   └── <cluster-name>
 │       ├── apps.yml
 │       ├── infrastructure.yml
-│       └── tenants
-│           └── <tenant-name>.yml
+│       └── tenants.yml
 ```
 
 subdirectories/files:
@@ -105,7 +104,7 @@ subdirectories/files:
 `cluster-name>` -  each cluster will have it's own directory that contains any cluster specific configuration. 
 `apps.yml` -  sets up the cluster specific kustomization pointing to the clusters directory in the `apps` folder. 
 `infrastructure.yml` - sets up the cluster specifc kustomization ponting to the clusters directory `infrastructure` directory. 
-`tenants` -  contains a yml file for each tenant. this yaml file sets up the tenants bootstrap namespace in the cluster as well as the `kustomization` and `gitrepo` that point to the tenants bootstrap git repo. 
+`tenants.yml` -  this is a single kustomization with a patch that defines each tenant into the [helm chart](https://github.com/warroyo/flux-tmc-multitenant/tree/main/tenant-generator) values. This is used for bootstrapping tenants on a cluster
 
 ### infrastructure
 
@@ -620,7 +619,7 @@ This will outline adding a new cluster to an existing environment, the process w
 2. if using secret management be sure to create the bootstrap credential in the newly created cluster
 4. create a new folder in the `clusters` directory with the name of the cluster from TMC. 
 5. add the neccessary files, examples of what are in the files can be foudn in this directory and are explained in the repo stucture.
-   1. `tenants/<tenant-name>.yml`
+   1. `tenants.yml`
    2. `apps.yml`
    3. `infrastructure.yml`
 6. create a new folder in the `apps/clusters` directory with the name of the cluster. this must match the path given in the `apps.yml`
@@ -635,7 +634,7 @@ These steps would only be done if the tenant was added to the new cluster. The s
 
 ## Adding a new tenant
 
-Adding a new Tenant has a few steps that could be automated. Some ideas around automating these are listed below. These steps should be completed any time a new team is wanting to be onboarded. These steps are outlined with commands referencing this repo's setup but these could be adpated to be done generically.
+These steps should be completed any time a new team is wanting to be onboarded. These steps are outlined with commands referencing this repo's setup but these could be adpated to be done generically.
 
 using `iris-red` as the new tenant.
 
@@ -653,24 +652,14 @@ tanzu tmc workspace create -f tmc/workspaces/iris-red.yaml
 tanzu tmc iam update-policy -s workspace -n iris-red -f tmc/iam/sa-rb-workspace-red.yaml
 ```
 
-3. create a tenant file in the infra-ops cluster folder. Replace the tenant name in all locations in the file.
+3. add a tenant to the list of tenant in the `tenant.yml` in the infra-ops cluster folder. See more on the tenant automation below.
 
-```
-cp clusters/eks.eks-warroyo2.us-west-2.infra-ops/tenants/iris-blue.yml clusters/eks.eks-warroyo2.us-west-2.infra-ops/tenants/iris-red.yml 
-
-##replace the tenant name in the file
-```
 
 4. create a tenant gitops repo, this could also be handled by the tenant initially and passed to the admins. In this case our git repo name is `iris-red-gitops`
 
 
-5. create a tenant file in the clusters that you would like that tenant to exist in. for this example we will assume dev only. This file contains the `gitrepo` setup for the tenant so make sure it matches the git repo from step 4.
+5. Add the tenant to the values in the `tenant.yml` for the cluster. See docs [here]() on tenant automation. 
 
-```
-cp clusters/eks.eks-warroyo2.us-west-2.iris-dev/tenants/iris-blue.yml clusters/eks.eks-warroyo2.us-west-2.iris-dev/tenants/iris-red.yml 
-
-##replace the tenant name in the file
-```
 
 6. commit these files into the git repo and wait for flux to reconcile. here is what is created
    1. tenant workspace
@@ -702,7 +691,7 @@ mkdir -p clusters/iris-dev/namespaces
 
 ### Automation ideas
 
-In the steps above we just copied existing files and did search and replace. However in an automation scenario what you would most liklely do is template out the files and use variables to generate them. 
+In the steps above we used a helm chart to generate most of our tenant yaml. More automation could be done here or this could be done in another way. Here are some ideas.
 
 * TAP acelerators for tenant repos
 * ADO pipelines + YTT templated files
@@ -716,3 +705,119 @@ The setup in the repo allows for tenants to self service namespaces. This is don
 1. In the tenant git repo make sure you have the `clusters/<clustername/namespaces` folder created. this is what flux watches.
 2. create a file(s) in the directory that has the namespace config. An example can be found [here](https://github.com/warroyo/iris-green-gitops/blob/main/clusters/iris-dev/namespaces/namespaces.yml)
 3. make sure that the `kustomization` includes that file, example [here](https://github.com/warroyo/iris-green-gitops/blob/main/clusters/iris-dev/namespaces/kustomization.yml). Make sure that the `kustomization` also includes a unique `nameSuffix` this will make sure that the `TMCNamespace` objects do not have collisions in the infra-ops cluster.
+
+
+## Tenant Automation
+
+For this repo we have setup some automation around how tenants get generated. This is done using a helm chart that is [embedded in this repo](https://github.com/warroyo/flux-tmc-multitenant/tree/main/tenant-generator) in the `tenant-generator` folder.This makes it easier to add tenants to a cluster. Rather than copy pasting a bunch of yaml it allows for simply adding some variables to an array and the helm chart will generate all of the resources and apply them to the cluster.  
+
+There are two types of cluster tenants that it supports, `infra` and `workload`. Infra is used for the infra ops cluster which manages TMC namespace objects and is slightly different than workload. Workload is used for all clusters that tenants will be deploying to and is a bit more simple than the infra setup. 
+
+### The Basics
+
+Before going into the differences between the two, let's dive into the commonalities and how it works.
+
+The `tenants.yml` for each cluster contains a `kustomization` this points at the `/apps/base/tenant-generator/` folder which defines a `helmRelease` that uses our prebiosuly mentioned chart. It also depends on the apps kustomization so that it runs after core software is installed. The `helmRelease` defines the bare minimum config needed to install the chart and then for each cluster we  can override the `values` for the chart using a patch. The patch is where the tenants get added. this is simply passing the values to the helm chart. The helm release will then loop over each and generate the required k8s manifests.  
+
+### Infra Setup
+
+The `tenants.yml` file for an infra cluster it will look like this. The main thing to look at is the `patches` section which is all that really needs to change. This has a few key variables and an array called `tenants`. this is where you add new tenants.
+
+```yaml
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: tenants
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  dependsOn:
+  - name: apps
+  interval: 10m0s
+  path: ./apps/base/tenant-generator/
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: infra-gitops
+  patches:
+    - patch: |
+        - op: add
+          path: /spec/values
+          value:
+            cluster_type: infra
+            infra_cluster:
+              tenants:
+                - name: iris-blue
+                  namespace: iris-blue
+                  workspace: iris-blue
+                  git_repo_url: https://github.com/warroyo/iris-blue-gitops
+                  clusters:
+                    - name: eks.sp-eks-new.us-east-2.iris-dev
+                      provisioner: eks
+                      mgmt_cluster: eks
+                    - name: aks.c149b7a9.my-resource-grp-sp.iris-test
+                      provisioner: aks
+                      mgmt_cluster: aks
+                - name: iris-green
+                  namespace: iris-green
+                  workspace: iris-green   
+                  git_repo_url: https://github.com/warroyo/iris-green-gitops
+                  clusters:
+                    - name: eks.sp-eks-new.us-east-2.iris-dev
+                      provisioner: eks
+                      mgmt_cluster: eks
+                    - name: aks.c149b7a9.my-resource-grp-sp.iris-test
+                      provisioner: aks
+                      mgmt_cluster: aks
+      target:
+        kind: HelmRelease
+        name: tenant-generator
+        namespace: tanzu-continuousdelivery-resources
+```
+
+### Workload Setup
+
+The   `tenants.yml` file for a worklaod cluster looks almost the same as the infra cluster type excppt that the values in the `paches` are different. see below. 
+
+```yaml
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: tenants
+  namespace: tanzu-continuousdelivery-resources
+spec:
+  dependsOn:
+  - name: apps
+  interval: 10m0s
+  path: ./apps/base/tenant-generator/
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    namespace: tanzu-continuousdelivery-resources
+    name: infra-gitops
+  patches:
+    - patch: |
+        - op: add
+          path: /spec/values
+          value:
+            cluster_type: workload
+            workload_cluster:
+              cluster_name: ${cluster_name} 
+              tenants:
+                - name: iris-blue
+                  namespace: iris-blue
+                  git_repo_url: https://github.com/warroyo/iris-blue-gitops
+                - name: iris-green
+                  namespace: iris-green   
+                  git_repo_url: https://github.com/warroyo/iris-green-gitops
+                - name: iris-red
+                  namespace: iris-red   
+                  git_repo_url: https://github.com/warroyo/iris-red-gitops
+                
+      target:
+        kind: HelmRelease
+        name: tenant-generator
+        namespace: tanzu-continuousdelivery-resources
+```
