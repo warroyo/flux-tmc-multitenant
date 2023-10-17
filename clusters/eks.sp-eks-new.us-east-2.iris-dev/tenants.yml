@@ -23,7 +23,7 @@ spec:
               - name: iris-blue   
                 git_repo_url: https://github.com/warroyo/iris-blue-gitops
                 cluster_name: ${cluster_name} 
-                namespace: iris-blue 
+            
       target:
         kind: HelmRelease
         name: tenant-generator
