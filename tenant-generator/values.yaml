@@ -5,5 +5,5 @@
 cluster_name: changeme
 tenants:
   - name: changeme2
-    namespace: ""
+    namespace: "required"
     git_repo_url: https://changeme

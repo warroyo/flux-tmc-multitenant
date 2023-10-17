@@ -21,11 +21,14 @@ spec:
           value:
             cluster_name: ${cluster_name} 
             tenants:
-              - name: iris-blue   
+              - name: iris-blue
+                namespace: iris-blue
                 git_repo_url: https://github.com/warroyo/iris-blue-gitops
-              - name: iris-green   
+              - name: iris-green
+                namespace: iris-green   
                 git_repo_url: https://github.com/warroyo/iris-green-gitops
-              - name: iris-red   
+              - name: iris-red
+                namespace: iris-red   
                 git_repo_url: https://github.com/warroyo/iris-red-gitops
                 
       target:
