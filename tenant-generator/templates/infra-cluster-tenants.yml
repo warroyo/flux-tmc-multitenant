@@ -1,0 +1,108 @@
+
+{{- if eq .Values.cluster_type "infra" }}
+{{- range .Values.infra_cluster.tenants }}
+{{- $tenantName := .name -}}
+{{- $tenantNs := .namespace -}}
+{{- $tenantWorkspace := .workspace -}}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $tenantNs }}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-flux-reconciler
+  namespace: {{ $tenantNs }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $tenantName }}-reconciler
+  namespace: {{ $tenantNs }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metatmc-controller-role
+subjects:
+- kind: ServiceAccount
+  name: tenant-flux-reconciler
+  namespace: {{ $tenantNs }}
+
+
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: {{ $tenantName }}
+  namespace: {{ $tenantNs }}
+spec:
+  interval: 1m0s
+  ref:
+    branch: main
+  url: {{ .git_repo_url }}
+
+
+## every cluster that this tenant is on should have a kustomization and a TMCNamespace
+{{- range .clusters }}
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: {{ $tenantName }}-{{ .name }}
+  namespace: {{ $tenantNs }}
+spec:
+  interval: 10m0s
+  path: ./clusters/{{ .name }}/namespaces
+  prune: true
+  serviceAccountName: tenant-flux-reconciler
+  targetNamespace: {{ $tenantNs }}
+  sourceRef:
+    kind: GitRepository
+    name: {{ $tenantName }}
+  patches:
+    - patch: |-
+        apiVersion: tmc.tanzufield.vmware.com/v1
+        kind: TMCNamespace
+        metadata:
+          name: not used
+        spec:
+          fullName:
+            clusterName: {{ .name }}
+            managementClusterName: {{ .mgmt_cluster }}
+            provisionerName: {{ .provisioner }}
+          spec:
+            workspaceName: {{ $tenantWorkspace }}
+                  
+      target:
+        kind: TMCNamespace
+
+---
+apiVersion: tmc.tanzufield.vmware.com/v1
+kind: TMCNamespace
+metadata:
+  name: {{ $tenantName }}
+  namespace: {{ $tenantNs }}
+  labels:
+    version: v1
+spec:
+  fullName:
+    name: {{ $tenantName }}
+    clusterName: {{ .name }}
+
+    managementClusterName: {{ .mgmt_cluster }}
+    provisionerName: {{ .provisioner }}
+  meta:
+    labels:
+      team: {{ $tenantName }}
+  spec:
+    workspaceName: {{ $tenantWorkspace }}    
+
+
+{{- end }}
+{{- end }}
+{{- end }}

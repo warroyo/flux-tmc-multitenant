@@ -1,9 +1,24 @@
 # Default values for tenant-generator.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+cluster_type: "workload"
+workload_cluster:
+  cluster_name: changeme
+  tenants:
+    - name: changeme2
+      namespace: "required"
+      git_repo_url: https://changeme
+infra_cluster:
+  tenants:
+    - name: changeme
+      namespace: changeme
+      workspace: changeme
+      git_repo_url: https://changeme
+      clusters:
+        - name: clusterName
+          mgmt_cluster:  mgmtname
+          provisioner: provisionerName
+        - name: clusterName2
+          mgmt_cluster:  mgmtname2
+          provisioner: provisionerName2
 
-cluster_name: changeme
-tenants:
-  - name: changeme2
-    namespace: "required"
-    git_repo_url: https://changeme

@@ -1,4 +1,13 @@
-{{- range .Values.tenants }}
+{{- if eq .Values.cluster_type "workload" }}
+{{- range .Values.workload_cluster.tenants }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+  labels:
+    {{- include "tenant-generator.labels" $ | nindent 4 }}
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
@@ -26,10 +35,11 @@ metadata:
     {{- include "tenant-generator.labels" $ | nindent 4 }}
 spec:
   interval: 10m0s
-  path: ./clusters/{{ $.Values.cluster_name }}
+  path: ./clusters/{{ $.Values.workload_cluster.cluster_name }}
   prune: true
   serviceAccountName: tenant-flux-reconciler
   sourceRef:
     kind: GitRepository
     name: {{ .name }}
+{{- end }}
 {{- end }}
