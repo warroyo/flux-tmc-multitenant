@@ -6,4 +6,4 @@ tenants:
   - name: changeme
     namespace: "testing"
     cluster_name: changeme
-    git_repo_url: changeme
+    git_repo_url: https://changeme
