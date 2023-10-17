@@ -85,7 +85,7 @@ spec:
 apiVersion: tmc.tanzufield.vmware.com/v1
 kind: TMCNamespace
 metadata:
-  name: {{ $tenantName }}
+  name: {{ $tenantName }}-{{ .name }}
   namespace: {{ $tenantNs }}
   labels:
     version: v1
