@@ -10,7 +10,7 @@ This release contains updates to the tenant management as well as a few minor fi
   * https://github.com/warroyo/flux-tmc-multitenant/commit/8aaefa1451f78d584c515a6d03c2fe644e0cf5a9
 * added helm chart to manage tenants on clusters. This reduces the code duplication needed to add tenants on clusters.
   * handles both infra and workload cluster tenants
-  * see docs [here]() 
+  * see docs [here](https://github.com/warroyo/flux-tmc-multitenant/tree/main/tenant-generator) 
 * refactored tenants to use new helm chart
 * updated documentation for tenants to reflect new helm chart
 

@@ -8,7 +8,7 @@ spec:
   dependsOn:
   - name: infrastructure
   interval: 10m0s
-  path: ./apps/clusters/iris-dev
+  path: ./apps/clusters/${cluster_name}
   prune: true
   sourceRef:
     kind: GitRepository
