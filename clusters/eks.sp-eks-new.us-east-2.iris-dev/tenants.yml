@@ -20,7 +20,7 @@ spec:
           path: /spec/values
           value:
             cluster_type: workload
-            worload_cluster:
+            workload_cluster:
               cluster_name: ${cluster_name} 
               tenants:
                 - name: iris-blue
