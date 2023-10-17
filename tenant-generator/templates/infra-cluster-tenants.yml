@@ -4,20 +4,19 @@
 {{- $tenantName := .name -}}
 {{- $tenantNs := .namespace -}}
 {{- $tenantWorkspace := .workspace -}}
----
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ $tenantNs }}
-
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: tenant-flux-reconciler
   namespace: {{ $tenantNs }}
-
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -31,10 +30,8 @@ subjects:
 - kind: ServiceAccount
   name: tenant-flux-reconciler
   namespace: {{ $tenantNs }}
-
-
-
 ---
+
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
@@ -45,11 +42,10 @@ spec:
   ref:
     branch: main
   url: {{ .git_repo_url }}
-
+---
 
 ## every cluster that this tenant is on should have a kustomization and a TMCNamespace
 {{- range .clusters }}
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -80,8 +76,8 @@ spec:
                   
       target:
         kind: TMCNamespace
-
 ---
+
 apiVersion: tmc.tanzufield.vmware.com/v1
 kind: TMCNamespace
 metadata:
@@ -101,7 +97,7 @@ spec:
       team: {{ $tenantName }}
   spec:
     workspaceName: {{ $tenantWorkspace }}    
-
+---
 
 {{- end }}
 {{- end }}
