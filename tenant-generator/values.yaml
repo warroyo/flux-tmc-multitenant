@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 tenants:
-  - name: changeme
-    namespace: "testing"
+  - name: changeme2
+    namespace: ""
     cluster_name: changeme
     git_repo_url: https://changeme

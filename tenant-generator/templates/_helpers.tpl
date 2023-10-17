@@ -40,16 +40,3 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
-
-
-{{/*
-Create the name of the namespace to use
-default to tenant name if namespace is not set
-*/}}
-{{- define "tenant-generator.namespace" -}}
-{{- if eq .namespace "" }}
-{{- .name }}
-{{- else }}
-{{-  .namespace }}
-{{- end }}
-{{- end }}
