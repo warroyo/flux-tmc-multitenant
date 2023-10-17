@@ -20,7 +20,7 @@ spec:
           path: /spec/values
           value:
             cluster_type: infra
-            infra_cluster
+            infra_cluster:
               tenants:
                 - name: iris-blue
                   namespace: iris-blue
