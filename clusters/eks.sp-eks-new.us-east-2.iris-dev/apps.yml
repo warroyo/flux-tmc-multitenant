@@ -10,6 +10,9 @@ spec:
   interval: 10m0s
   path: ./apps/clusters/${cluster_name}
   prune: true
+  postBuild:
+    substitute:
+      cluster_name: ${cluster_name}
   sourceRef:
     kind: GitRepository
     namespace: tanzu-continuousdelivery-resources
