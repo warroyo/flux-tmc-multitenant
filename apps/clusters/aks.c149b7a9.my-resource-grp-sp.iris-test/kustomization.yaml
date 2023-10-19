@@ -6,6 +6,7 @@ generatorOptions:
 resources:
 - ../../base/external-secrets-crd/css.yml
 - ../../base/contour
+- ../../base/fluent
 
 
 components:
