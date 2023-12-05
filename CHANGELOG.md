@@ -1,4 +1,4 @@
-# 2.1.1
+# 2.1.0
 
 The release contains an update for using the newly release opaue secret creation that TMC added. This replaces the old method of using a script to boostrap the azure keyvault credentials that external secrets uses. 
 
