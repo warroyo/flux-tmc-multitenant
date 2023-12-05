@@ -1,3 +1,11 @@
+# 2.1.1
+
+The release contains an update for using the newly release opaue secret creation that TMC added. This replaces the old method of using a script to boostrap the azure keyvault credentials that external secrets uses. 
+
+* added tmc cli commands and files to create cluster group level secrets and added documentation.
+  * https://github.com/warroyo/flux-tmc-multitenant/commit/572488a7851e87e5bf9d7ea7d3b356eb5a3b4a49
+
+
 # 2.0.0
 
 This release contains updates to the tenant management as well as a few minor fixes.
