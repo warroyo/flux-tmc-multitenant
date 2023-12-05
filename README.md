@@ -169,14 +169,7 @@ some good examples of different ways to override settings can be found in the fo
 * `apps/clusters/iris-dev` - this shows how to use an env override with the `components` directive for external-secrets. It also shows how to do an override specific to the cluster using the inline patches to add an override values file for contour.
 * 
 
-### bootstrap
 
-this directory holds the template for the azure-sp credential to setup secrets managment.
-
-```
- bootstrap
- └── azure-secret.yaml
-```
 ### tmc
 
 Contains any yaml needed for creating TMC objects with the CLI. 
@@ -297,10 +290,12 @@ As a Platform admin:
    2. `dev-env` - dev env vault
    3. `test-env` - test env vault
 2. Create a Azure SP that has read access to the keyvault 
-3. bootstrap the cluster with the credentials created above. this needs to be done per cluster and should be automated with your cluster creation process. Modify the file `bootstrap/azure-secret.yaml` to have your credentials and apply it into the clusters.
+3. bootstrap the cluster with the Azure SP credentials created above. We can make this easy using TMC. TMC has the ability to [create opaque secrets at the cluster group level](https://docs.vmware.com/en/VMware-Tanzu-Mission-Control/services/tanzumc-using/GUID-BBE2404D-C2EE-41C7-B639-C0322783A74D.html). This will make it so that every cluster in the cluster group automatically gets the bootstrap secret. This remove the need for running a script to bootstrap clusters. before running the below commands make sure to update the files with your client-id and client secret
 
 ```bash
-kubectl apply -f  bootstrap/azure-secret.yaml
+tanzu tmc secret create -f tmc/secrets/azure-sp-bootstrap-dev.yaml -s clustergroup
+tanzu tmc secret create -f tmc/secrets/azure-sp-bootstrap-test.yaml -s clustergroup
+tanzu tmc secret create -f tmc/secrets/azure-sp-bootstrap-infra-ops.yaml -s clustergroup
 ```
 
 4. create a policy in TMC using gatekeeper to prevent tenants from accessing eachothers secrets and apply it to the two cluster groups. This policy will make sure that the naming convention matches the tenant workspace label on the namepsace. becuase of the access given to tenants they will not be able to modify this label so it is a good identifier to match on. The policy will match any namespace with the `tmc.cloud.vmware.com/workspace` label, this can be changed to meet your needs. For example you could have a list of workspaces to apply this to using the same label but with a list of values to match.

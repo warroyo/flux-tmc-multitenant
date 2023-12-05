@@ -1,2 +1,5 @@
 azure-secret-real.yaml
 settings.json
+azure-sp-bootstrap-dev-real.yaml
+azure-sp-bootstrap-test-real.yaml
+azure-sp-bootstrap-infra-ops-real.yaml
