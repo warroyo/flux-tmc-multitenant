@@ -611,14 +611,13 @@ This will outline adding a new cluster to an existing environment, the process w
 ### Platform admin Tasks
 
 1. create the cluster and add it to the appropriate cluster group
-2. if using secret management be sure to create the bootstrap credential in the newly created cluster
-4. create a new folder in the `clusters` directory with the name of the cluster from TMC. 
-5. add the neccessary files, examples of what are in the files can be foudn in this directory and are explained in the repo stucture.
+2. create a new folder in the `clusters` directory with the name of the cluster from TMC. 
+3. add the neccessary files, examples of what are in the files can be foudn in this directory and are explained in the repo stucture.
    1. `tenants.yml`
    2. `apps.yml`
    3. `infrastructure.yml`
-6. create a new folder in the `apps/clusters` directory with the name of the cluster. this must match the path given in the `apps.yml`
-7.  create a `kustomization.yml` in that directory with the references to the apps you want installed in that cluster.
+4. create a new folder in the `apps/clusters` directory with the name of the cluster. this must match the path given in the `apps.yml`
+5.  create a `kustomization.yml` in that directory with the references to the apps you want installed in that cluster.
 
 
 ### Tenant tasks
