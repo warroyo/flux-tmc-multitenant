@@ -19,6 +19,8 @@ spec:
         package esbeginswith
 
         violation[{"msg": msg}] {
+          storeKind := input.review.object.spec.secretStoreRef.kind
+          storeKind = "ClusterSecretStore"
           namespace := input.review.object.metadata.namespace
           secretrefs := input.review.object.spec.dataFrom[_].key
           target := data.inventory.cluster["v1"]["Namespace"][namespace]
@@ -27,6 +29,8 @@ spec:
           msg := sprintf("Data From key %v not allowed in Namespace %v",[secretrefs, namespace])
         }
         violation[{"msg": msg}] {
+          storeKind := input.review.object.spec.secretStoreRef.kind
+          storeKind = "ClusterSecretStore"
           namespace := input.review.object.metadata.namespace
           secretrefs := input.review.object.spec.data[_].remoteRef.key
           target := data.inventory.cluster["v1"]["Namespace"][namespace]
