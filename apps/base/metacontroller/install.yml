@@ -7,7 +7,7 @@ metadata:
 spec:
   type: "oci"
   interval: 5m0s
-  url: oci://ghcr.io/metacontroller/metacontroller-helm
+  url: oci://ghcr.io/metacontroller
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
