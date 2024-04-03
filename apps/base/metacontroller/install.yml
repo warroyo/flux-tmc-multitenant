@@ -21,7 +21,7 @@ spec:
   chart:
     spec:
       chart: metacontroller-helm
-      version: 4.10.2
+      version: v4.10.2
       sourceRef:
         kind: HelmRepository
         name: metacontroller
