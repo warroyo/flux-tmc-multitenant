@@ -20,7 +20,7 @@ spec:
   interval: 2m
   chart:
     spec:
-      chart: metacontroller
+      chart: metacontroller-helm
       version: 4.10.2
       sourceRef:
         kind: HelmRepository
