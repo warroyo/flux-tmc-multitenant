@@ -46,6 +46,15 @@ spec:
 
 ## every cluster that this tenant is on should have a kustomization and a TMCNamespace
 {{- range .clusters }}
+
+{{- if not .no_ns}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $tenantNs }}-{{ .name }}
+{{- end}}
+
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -56,7 +65,11 @@ spec:
   path: ./clusters/{{ .name }}/namespaces
   prune: true
   serviceAccountName: tenant-flux-reconciler
+  {{- if .no_ns}}
   targetNamespace: {{ $tenantNs }}
+  {{ else }}
+  targetNamespace: {{ $tenantNs }}-{{.name}}
+  {{- end}}
   sourceRef:
     kind: GitRepository
     name: {{ $tenantName }}

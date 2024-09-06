@@ -30,6 +30,7 @@ spec:
                     - name: eks.eks-warroyo2.us-west-2.iris-dev
                       provisioner: eks
                       mgmt_cluster: eks
+                      no_ns: true
                     - name: aks.00439d3b.tmc-clusters.iris-test
                       provisioner: aks
                       mgmt_cluster: aks

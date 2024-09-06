@@ -1,7 +1,7 @@
 # Default values for tenant-generator.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-cluster_type: "workload"
+cluster_type: "infra"
 workload_cluster:
   cluster_name: changeme
   tenants:
