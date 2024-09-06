@@ -47,11 +47,14 @@ spec:
 ## every cluster that this tenant is on should have a kustomization and a TMCNamespace
 {{- range .clusters }}
 
+{{- $clusterSanitized := .name | replace "." "_" -}}
+{{- $tenantClusterNs := printf "%s-%s" $tenantNs $clusterSanitized -}}
+
 {{- if not .no_ns}}
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ $tenantNs }}-{{ .name }}
+  name: {{ $tenantClusterNs }}
 {{- end}}
 
 ---
@@ -68,7 +71,7 @@ spec:
   {{- if .no_ns}}
   targetNamespace: {{ $tenantNs }}
   {{ else }}
-  targetNamespace: {{ $tenantNs }}-{{.name}}
+  targetNamespace: {{ $tenantClusterNs }}
   {{- end}}
   sourceRef:
     kind: GitRepository

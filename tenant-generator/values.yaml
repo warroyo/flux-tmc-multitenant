@@ -18,7 +18,7 @@ infra_cluster:
         - name: clusterName
           mgmt_cluster:  mgmtname
           provisioner: provisionerName
-        - name: clusterName2
+        - name: clusterName2.eks.com
           mgmt_cluster:  mgmtname2
           provisioner: provisionerName2
 
