@@ -47,7 +47,7 @@ spec:
 ## every cluster that this tenant is on should have a kustomization and a TMCNamespace
 {{- range .clusters }}
 
-{{- $clusterSanitized := .name | replace "." "_" -}}
+{{- $clusterSanitized := .name | replace "." "-" -}}
 {{- $tenantClusterNs := printf "%s-%s" $tenantNs $clusterSanitized -}}
 
 {{- if not .no_ns}}
