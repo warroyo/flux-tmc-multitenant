@@ -11,7 +11,7 @@ spec:
   chart:
     spec:
       chart: tenant-generator
-      version: 1.0.1
+      version: 1.0.2
       sourceRef:
         kind: GitRepository
         name: infra-gitops
